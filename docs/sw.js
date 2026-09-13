@@ -1,5 +1,5 @@
 /* マグロ部位パズル ─ オフラインで遊べるようにする係 */
-var VERSION = "1.0.4";
+var VERSION = "1.0.5";
 var CACHE   = "maguro-" + VERSION;
 var ASSETS  = [
   "./", "./index.html", "./manifest.webmanifest", "./vendor/three.min.js",

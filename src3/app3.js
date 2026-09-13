@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="1.0.4";
+var APP_VERSION="1.0.5";
 var $=function(s){return document.querySelector(s);};
 var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
 if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
@@ -642,6 +642,33 @@ function updateCam(){
   camera.lookAt(c.target);
 }
 function resetCam(){var c=state.cam;c.tYaw=-0.55;c.tPitch=0.22;c.tZoom=1;c.tTarget.copy(FISH_CENTER);}
+/* ===== トップ画面：ロゴとボタンのあいだの空きに、マグロをぴったり収める =====
+   画面の高さは機種でもブラウザのバーでも変わるので、そのつど測って合わせる。 */
+var FISHBOX=null;
+function fishSize(){                        /* マグロの実際の大きさを1度だけ測る */
+  if(FISHBOX) return FISHBOX;
+  var bb=new THREE.Box3().setFromObject(root);
+  var c=bb.getCenter(new THREE.Vector3()), h=bb.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+  FISHBOX={cx:c.x, cy:c.y, hy:h.y, rad:Math.sqrt(h.x*h.x+h.z*h.z)};  /* 横に回るので半径で見る */
+  return FISHBOX;
+}
+function fitTitle(){
+  if(state.screen!=="title") return;
+  var r=canvas.getBoundingClientRect(); if(r.height<40) return;
+  var lg=$(".logo").getBoundingClientRect();
+  var bl=$("#btnName").getBoundingClientRect();
+  var top=Math.max(r.top, lg.bottom)+4;
+  var bot=Math.min(r.bottom, bl.top)-12;
+  var bandH=bot-top; if(bandH<60) bandH=60;
+  var f=fishSize(), c=state.cam, vf=camera.fov*Math.PI/180;
+  var dh=f.hy/Math.tan(vf/2)*(r.height/bandH);         /* 空き帯の高さに収まる距離 */
+  var dw=f.rad/Math.tan(Math.atan(Math.tan(vf/2)*camera.aspect));
+  var dist=Math.max(dh,dw)*1.13;                      /* 少し余裕をとる */
+  c.tZoom=c.zoom=dist/fitDist();
+  var perPx=2*dist*Math.tan(vf/2)/r.height;            /* 1ピクセルあたりの世界の長さ */
+  var ty=f.cy+(((top+bot)/2)-(r.top+r.height/2))*perPx;
+  c.tTarget.set(f.cx,ty,0); c.target.set(f.cx,ty,0);
+}
 /* ================= 入力 ================= */
 canvas.addEventListener("pointerdown",function(ev){
   try{canvas.setPointerCapture(ev.pointerId);}catch(e){}
@@ -865,8 +892,7 @@ function go(name,opt){
   if(name==="howto") $("#hdrTitle").textContent="あそびかた";
   if(name==="parts"){ $("#hdrTitle").textContent="パーツ一覧"; renderParts(); }
   if(name==="title"){ stopClock(); wholeFish(); state.spin=true; resetCam();
-    state.cam.tTarget.set(0.3,-2.55,0); state.cam.target.set(0.3,-2.55,0);
-    state.cam.tZoom=0.92; }
+    setTimeout(fitTitle,0); setTimeout(fitTitle,120); }
   if(name==="play"&&opt!=="resume") resetMode();
   canvas.classList.toggle("knife",name==="play"&&state.mode==="kaitai");
   tapClear(); viewBtns(); keepAwake(name==="play");
@@ -1006,7 +1032,7 @@ document.addEventListener("visibilitychange",function(){
 });
 /* ================= 起動 ================= */
 function resize(){
-  layoutBottom();
+  layoutBottom(); setTimeout(fitTitle,0);
   var w=canvas.clientWidth||420,h=canvas.clientHeight||300;
   renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
 }

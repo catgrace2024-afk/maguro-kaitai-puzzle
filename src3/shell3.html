@@ -96,7 +96,8 @@ button{font:inherit}
 .itaempty{font-size:12px;font-weight:700;color:rgba(70,45,15,.62);text-align:center;padding:24px 8px}
 .float{position:fixed;z-index:40;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
 
-.ov{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;padding:14px}
+.ov{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;
+  padding:14px; padding:clamp(8px,1.7vh,14px); padding:clamp(8px,1.7dvh,14px)}
 .ov.hide{display:none}
 .ov.solid{background:var(--paper);overflow-y:auto}
 #ovKansho{background:linear-gradient(180deg,rgba(255,252,245,.92) 0 18%,rgba(255,252,245,0) 30% 72%,rgba(255,252,245,.94) 84% 100%);pointer-events:none}
@@ -108,18 +109,22 @@ button{font:inherit}
 .grow{flex:1 1 auto;min-height:8px;pointer-events:none}
 .logo{text-align:center;padding-top:8px}
 .logo .l1,.logo .l2{display:inline-block;position:relative;font-weight:800;color:var(--navy);line-height:1.05}
-.logo .l1{font-size:clamp(31px,9vw,42px)}
-.logo .l2{font-size:clamp(27px,7.6vw,36px);margin-top:2px}
+.logo .l1{font-size:clamp(31px,9vw,42px); font-size:clamp(24px,min(9vw,5.0dvh),42px)}
+.logo .l2{font-size:clamp(27px,7.6vw,36px); font-size:clamp(21px,min(7.6vw,4.3dvh),36px); margin-top:2px}
 .logo .l1::after,.logo .l2::after{content:"";position:absolute;left:-2%;right:-2%;bottom:1px;height:8px;border-radius:99px;
   background:var(--red);transform:rotate(-1.2deg);opacity:.92;z-index:-1}
-.logo .sub{display:block;margin-top:8px;font-size:12px;font-weight:800;color:var(--sea-d);letter-spacing:.12em}
-.btns{display:flex;flex-direction:column;gap:9px;padding-bottom:4px}
-.big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px 16px;border:none;border-radius:999px;
-  font-size:18px;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(180deg,#46A0F5,var(--sea-d));
+.logo .sub{display:block;margin-top:8px;margin-top:clamp(3px,0.9dvh,8px);
+  font-size:12px;font-size:clamp(10px,1.5dvh,12px);font-weight:800;color:var(--sea-d);letter-spacing:.12em}
+.btns{display:flex;flex-direction:column;gap:9px;gap:clamp(4px,1.0dvh,9px);padding-bottom:4px}
+.big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:none;border-radius:999px;
+  padding:14px 16px; padding:clamp(9px,1.75dvh,14px) 16px;
+  font-size:18px; font-size:clamp(14.5px,2.2dvh,18px);
+  font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(180deg,#46A0F5,var(--sea-d));
   box-shadow:0 4px 0 var(--sea-dd),0 10px 18px -10px rgba(16,60,120,.7)}
 .big:active{transform:translateY(2px);box-shadow:0 2px 0 var(--sea-dd)}
 .big.sub{background:linear-gradient(180deg,#FFFDF6,#F6ECD6);color:var(--navy);box-shadow:0 4px 0 var(--edge)}
-.big.sm{font-size:15px;padding:11px 14px}
+.big.sm{font-size:15px;font-size:clamp(12.5px,1.85dvh,15px);
+  padding:11px 14px;padding:clamp(7px,1.4dvh,11px) 14px}
 .ov h3{margin:2px 0 10px;font-size:19px;font-weight:800;color:var(--navy);text-align:center}
 .card{background:var(--cream);border:2px solid var(--edge);border-radius:16px;padding:13px;margin-bottom:11px}
 .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
@@ -228,9 +233,11 @@ button{font:inherit}
 .tinput{-webkit-user-select:text;user-select:text;width:100%;padding:11px 13px;border:2px solid var(--edge);border-radius:12px;background:#fff;
   font:inherit;font-size:17px;font-weight:800;color:var(--navy);text-align:center}
 .nhelp{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--ink-2);text-align:center}
-.namechip{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-bottom:9px;
-  padding:8px 14px;border:2px solid var(--edge);border-radius:999px;background:var(--cream);
-  font-size:13px;font-weight:800;color:var(--navy);cursor:pointer}
+.namechip{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  margin-bottom:9px;margin-bottom:clamp(4px,1.0dvh,9px);
+  padding:8px 14px;padding:clamp(5px,1.1dvh,8px) 14px;
+  border:2px solid var(--edge);border-radius:999px;background:var(--cream);
+  font-size:13px;font-size:clamp(11.5px,1.7dvh,13px);font-weight:800;color:var(--navy);cursor:pointer}
 .namechip b{font-size:15px}
 .note{margin:0 2px 8px;font-size:11px;font-weight:700;line-height:1.6;color:var(--ink-2);text-align:center}
 .vertag{margin:5px 0 0;text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-2);opacity:.65}
