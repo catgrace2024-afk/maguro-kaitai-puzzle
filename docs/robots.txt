@@ -1,0 +1,4 @@
+# クロールは許可し、ページ側の noindex を読ませる。
+# ここで Disallow にすると noindex を読めず、URL だけ検索結果に出ることがある。
+User-agent: *
+Allow: /

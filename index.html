@@ -1,0 +1,1659 @@
+<meta charset="utf-8">
+<title>マグロ部位パズル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap">
+<style>
+:root{
+  --sea:#2E8AEC; --sea-d:#1566CC; --sea-dd:#0F4E9C; --navy:#123A63;
+  --ink:#22303A; --ink-2:#5E6F7B; --cream:#FBF3E0; --paper:#FFFCF5; --edge:#E7DAB9;
+  --wood:#D9A55F; --wood-2:#E7BC7E; --wood-l:#C08B47; --red:#E0353F; --red-d:#B92531; --gold:#C9922B;
+}
+*{box-sizing:border-box}
+html,body{touch-action:manipulation; overscroll-behavior:none}   /* ダブルタップ拡大・引っぱりバウンドを止める */
+[hidden]{display:none !important}
+html,body{margin:0}
+body{background:#E9F4FD;
+  background-image:
+    repeating-radial-gradient(circle at 50% 100%, rgba(46,138,236,0) 0 11px, rgba(46,138,236,.13) 11px 13px, rgba(46,138,236,0) 13px 24px),
+    repeating-radial-gradient(circle at 0% 100%, rgba(46,138,236,0) 0 11px, rgba(46,138,236,.09) 11px 13px, rgba(46,138,236,0) 13px 24px);
+  background-size:52px 26px, 52px 26px; background-position:0 0, 26px 13px;
+  color:var(--ink); font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN",system-ui,sans-serif;
+  font-size:15px; line-height:1.7; -webkit-text-size-adjust:100%}
+button{font:inherit}
+:focus-visible{outline:3px solid var(--sea-dd); outline-offset:2px}
+.app{position:relative; max-width:560px; margin:0 auto; min-height:100vh; min-height:100dvh;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; background:var(--paper);
+  box-shadow:0 0 40px -10px rgba(16,50,90,.35); display:flex; flex-direction:column; overflow:hidden}
+@media (min-width:620px){ .app{min-height:calc(100vh - 36px); min-height:calc(100dvh - 36px);
+  margin:18px auto; border-radius:22px} }
+
+.hdr{position:relative; z-index:14; display:flex; align-items:center; gap:8px;
+  padding:calc(9px + env(safe-area-inset-top,0px)) 11px 9px;
+  background:linear-gradient(180deg,#3D94EE,#1B74D8); color:#fff;
+  min-height:calc(54px + env(safe-area-inset-top,0px)); flex:0 0 auto}
+.hdr.hide{display:none}
+.hdrmid{flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center}
+.hdr h2{margin:0; font-size:15px; font-weight:800; letter-spacing:.03em; text-align:center; max-width:100%;
+  line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.hdrtime{font-size:12.5px; font-weight:800; color:#D6E9FD; line-height:1.15; margin-top:1px;
+  font-variant-numeric:tabular-nums; letter-spacing:.04em; white-space:nowrap}
+.icb{width:37px;height:37px;flex:0 0 auto;border:none;border-radius:12px;background:rgba(255,255,255,.2);color:#fff;
+  font-size:17px;font-weight:800;cursor:pointer;display:grid;place-items:center}
+.countpill{flex:0 0 auto;background:#fff;color:var(--sea-d);font-weight:800;font-size:15px;border-radius:999px;
+  padding:3px 12px;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:#D8E7F5;flex:0 0 auto;position:relative;z-index:14}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#F2A23C,var(--red));transition:width .35s ease}
+
+.boardwrap{position:relative;flex:1 1 0;height:0;min-height:190px;padding:8px 8px 0;display:flex}
+.board{position:relative;flex:1 1 auto;border-radius:14px;overflow:hidden;background:#DCEEFB;border:2px solid #C7E2F6}
+#svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.pc{cursor:pointer}
+.pc .ol{fill:none;stroke:rgba(40,30,15,.55);stroke-width:2.2;stroke-linejoin:round;pointer-events:none}
+.t-title .pc .ol{display:none}
+.pc.hot .ol{stroke:#E0353F;stroke-width:3.4}
+.pc.hot,.pc.lift,.pc.drop{filter:url(#pcsh)}
+.pc.gone{display:none}
+.pc.lift{animation:lift .5s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes lift{60%{transform:translate(0,-26px) scale(1.05);opacity:1}100%{transform:translate(30px,-190px) scale(.9) rotate(8deg);opacity:0}}
+.pc.drop{animation:drop .42s cubic-bezier(.2,1.3,.4,1)}
+@keyframes drop{from{transform:translate(0,-40px) scale(1.12);opacity:.2}}
+.cav{pointer-events:none}
+.tap{position:absolute;pointer-events:none;font-size:12px;font-weight:800;padding:3px 10px;border-radius:10px;
+  background:var(--navy);color:#fff;transform:translate(-50%,-160%);white-space:nowrap;opacity:0;transition:opacity .15s}
+.tap.on{opacity:1}
+
+.playbody{flex:0 0 auto;display:flex;flex-direction:column}
+.nowbar{display:flex;align-items:center;gap:9px;margin:8px 11px 0;padding:6px 11px;border-radius:13px;
+  background:var(--cream);border:2px solid var(--edge)}
+.nowbar img{width:38px;height:29px;object-fit:contain;flex:0 0 auto}
+.nowbar .sw{width:40px;height:32px;border-radius:8px;background:#E7DAB9;flex:0 0 auto}
+.nowbar .nm{font-weight:800;font-size:14.5px;color:var(--navy);line-height:1.25}
+.nowbar .ds{font-size:11.5px;color:var(--ink-2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.nowbar.idle .nm{color:var(--ink-2)}
+.stats{display:flex;gap:8px;margin:8px 11px 0}
+.stat{flex:1;background:#fff;border:2px solid var(--edge);border-radius:12px;padding:4px 8px;text-align:center;font-variant-numeric:tabular-nums}
+.stat b{display:block;font-size:17px;font-weight:800;color:var(--navy);line-height:1.25}
+.stat span{font-size:10px;font-weight:700;color:var(--ink-2);letter-spacing:.06em}
+.itawrap{flex:1 1 auto;min-height:0;margin:9px 11px 11px;display:flex;flex-direction:column}
+.itahd{display:flex;align-items:center;font-size:12.5px;font-weight:800;color:var(--navy);margin-bottom:5px}
+.itahd span{margin-left:auto;font-weight:700;color:var(--ink-2)}
+.ita{flex:1 1 auto;min-height:96px;overflow-y:auto;border-radius:14px;padding:8px;
+  background:repeating-linear-gradient(94deg,var(--wood) 0 20px,var(--wood-2) 20px 24px,var(--wood) 24px 50px,var(--wood-l) 50px 51px);
+  box-shadow:inset 0 2px 8px rgba(90,60,20,.3);border:2px solid var(--wood-l)}
+.tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px;list-style:none;margin:0;padding:0}
+.chip{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 3px;border:none;border-radius:9px;
+  cursor:pointer;background:#FFFDF7;box-shadow:0 2px 0 rgba(90,60,20,.35);text-align:center;touch-action:none}
+.chip img{width:100%;height:54px;object-fit:contain;display:block}
+.chip b{font-size:11.5px;font-weight:800;line-height:1.2;color:var(--navy)}
+.chip small{font-size:9px;font-weight:700;color:#96826A}
+.chip.rare{box-shadow:0 2px 0 rgba(90,60,20,.35), inset 0 0 0 2px rgba(201,146,43,.8)}
+.chip[data-picked="1"]{box-shadow:0 0 0 3px var(--red),0 2px 0 rgba(90,60,20,.35)}
+.chip.dragging{opacity:.35}
+.chip-in{animation:pop .32s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:translateY(-10px) scale(.85);opacity:0}}
+.itaempty{font-size:12px;font-weight:700;color:rgba(70,45,15,.62);text-align:center;padding:24px 8px}
+.float{position:fixed;z-index:40;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
+
+.ov{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;padding:14px}
+.ov.hide{display:none}
+.ov.solid{background:var(--paper);overflow-y:auto}
+#ovKansho{background:linear-gradient(180deg,rgba(255,252,245,.92) 0 18%,rgba(255,252,245,0) 30% 72%,rgba(255,252,245,.94) 84% 100%);pointer-events:none}
+#ovKansho>*{pointer-events:auto}
+#ovKansho .grow{pointer-events:none}
+.ov.solid.hasHdr{padding-top:8px}
+.ov.clear{pointer-events:none;background:linear-gradient(180deg,rgba(255,252,245,.95) 0 21%,rgba(255,252,245,0) 32% 68%,rgba(255,252,245,.95) 79% 100%)}
+.ov.clear > *{pointer-events:auto}
+.grow{flex:1 1 auto;min-height:8px;pointer-events:none}
+.logo{text-align:center;padding-top:8px}
+.logo .l1,.logo .l2{display:inline-block;position:relative;font-weight:800;color:var(--navy);line-height:1.05}
+.logo .l1{font-size:clamp(31px,9vw,42px)}
+.logo .l2{font-size:clamp(27px,7.6vw,36px);margin-top:2px}
+.logo .l1::after,.logo .l2::after{content:"";position:absolute;left:-2%;right:-2%;bottom:1px;height:8px;border-radius:99px;
+  background:var(--red);transform:rotate(-1.2deg);opacity:.92;z-index:-1}
+.logo .sub{display:block;margin-top:8px;font-size:12px;font-weight:800;color:var(--sea-d);letter-spacing:.12em}
+.btns{display:flex;flex-direction:column;gap:9px;padding-bottom:4px}
+.big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px 16px;border:none;border-radius:999px;
+  font-size:18px;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(180deg,#46A0F5,var(--sea-d));
+  box-shadow:0 4px 0 var(--sea-dd),0 10px 18px -10px rgba(16,60,120,.7)}
+.big:active{transform:translateY(2px);box-shadow:0 2px 0 var(--sea-dd)}
+.big.sub{background:linear-gradient(180deg,#FFFDF6,#F6ECD6);color:var(--navy);box-shadow:0 4px 0 var(--edge)}
+.big.sm{font-size:15px;padding:11px 14px}
+.ov h3{margin:2px 0 10px;font-size:19px;font-weight:800;color:var(--navy);text-align:center}
+.card{background:var(--cream);border:2px solid var(--edge);border-radius:16px;padding:13px;margin-bottom:11px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.steps li{display:flex;gap:10px;align-items:flex-start}
+.steps .n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--sea);color:#fff;font-weight:800;font-size:14px;
+  display:grid;place-items:center;box-shadow:0 2px 0 var(--sea-dd)}
+.steps p{margin:0;font-size:13.5px;font-weight:700;line-height:1.6}
+.steps p em{font-style:normal;color:var(--red-d)}
+.grp{margin:0 0 8px;font-size:13px;font-weight:800;color:#fff;background:var(--sea-d);border-radius:9px;padding:4px 11px;display:inline-block}
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;list-style:none;margin:0 0 14px;padding:0}
+.pcard{background:var(--cream);border:2px solid var(--edge);border-radius:13px;padding:8px;text-align:center;cursor:pointer;width:100%}
+.pcard img{width:100%;height:52px;object-fit:contain;display:block;margin-bottom:3px}
+.pcard b{display:block;font-size:12.5px;font-weight:800;color:var(--navy);line-height:1.3}
+.pcard small{display:block;font-size:10px;font-weight:700;color:var(--ink-2)}
+.pcard .ds{display:none;font-size:11.5px;font-weight:400;color:var(--ink-2);text-align:left;line-height:1.55;margin-top:5px}
+.pcard[aria-expanded="true"] .ds{display:block}
+.pcard.rare{border-color:var(--gold);background:#FFF8E6}
+.pcard .rb{display:inline-block;font-size:9.5px;font-weight:800;color:var(--gold);border:1.5px solid var(--gold);border-radius:99px;padding:0 6px}
+.done-in{text-align:center;margin:auto 0}
+.done-ttl{font-size:clamp(33px,10vw,44px);font-weight:800;color:var(--red);transform:rotate(-2deg);margin:0 0 2px;
+  text-shadow:3px 3px 0 #fff,5px 5px 0 rgba(224,53,63,.2)}
+.done-time{font-size:42px;font-weight:800;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1.1}
+.done-meta{font-size:13px;font-weight:700;color:var(--ink-2);margin:3px 0 14px}
+.rec{background:var(--cream);border:2px solid var(--edge);border-radius:14px;padding:9px 13px;margin:0 0 13px;text-align:left}
+.rec h4{margin:0 0 4px;font-size:11.5px;font-weight:800;color:var(--sea-d);letter-spacing:.08em}
+.rec ol{margin:0;padding-left:19px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--navy)}
+.rec .none{margin:0;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.sheet{position:absolute;inset:0;z-index:12;display:grid;place-items:center;padding:20px;background:rgba(18,40,62,.55)}
+.sheet.hide{display:none}
+.sheet-in{background:var(--paper);border-radius:20px;padding:17px;width:100%;max-width:330px}
+.sheet-in h3{margin:0 0 11px}
+
+#gl{display:block;width:100%;height:100%;touch-action:none;cursor:grab;background:transparent}
+#gl.grabbing{cursor:grabbing}
+#gl.knife{cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><g stroke-linejoin="round" stroke-linecap="round"><path d="M30.4 11.6 L36.4 17.6 L46.8 5.8 L42.2 1.2 Z" fill="%23F5E7B9"/><path d="M33.5 11.4 Q37.6 7.0 41.2 3.6 M35.1 12.9 Q39.3 9.4 42.8 5.2 M36.6 14.5 Q40.6 10.4 44.3 6.8" fill="none" stroke="%23E0CB89" stroke-width="0.95"/><path d="M24.9 16.1 L31.9 23.1 L36.9 17.9 L30.0 11.1 Z" fill="%231D1D22"/><path d="M24.9 16.1 L4 44 Q23 40 31.9 23.1 Z" fill="%23EEF1F8" stroke="%23A3ABC2" stroke-width="0.85"/><path d="M24.9 16.1 L4 44 Q14.5 40.5 21.0 31.5 Q25.6 25.0 26.2 17.4 Z" fill="%23ABB3CC"/></g></svg>') 4 44, pointer}
+.board{background:linear-gradient(180deg,#FDFEFF 0%,#E8EEF3 55%,#DCE5EC 100%)}
+.vb{border:none;border-radius:11px;padding:6px 10px;font-size:11.5px;font-weight:800;cursor:pointer;
+  background:rgba(255,255,255,.92);color:var(--navy);box-shadow:0 2px 0 rgba(120,90,40,.22)}
+.vb[aria-pressed="true"]{background:var(--sea);color:#fff;box-shadow:0 2px 0 var(--sea-dd)}
+.layerpill{position:absolute;left:8px;top:8px;font-size:12px;font-weight:800;color:var(--navy);
+  background:rgba(255,255,255,.92);border-radius:11px;padding:6px 11px;box-shadow:0 2px 0 rgba(120,90,40,.22);
+  max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donebanner{position:absolute;left:8px;right:8px;bottom:10px;margin:0 auto;z-index:7;border:none;cursor:pointer;
+  width:-webkit-fit-content;width:fit-content;
+  max-width:calc(100% - 16px);line-height:1.5;text-align:center;white-space:normal;
+  background:linear-gradient(180deg,#FFE9A8,#F5C64C);color:#6A4A00;font-size:clamp(11.5px,3.3vw,13px);font-weight:800;
+  padding:9px 14px;border-radius:999px;box-shadow:0 3px 0 #C79A2A,0 8px 16px -8px rgba(0,0,0,.4);animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.spinmsg{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--ink-2)}
+.t-title .cornerbar,.t-title .layerpill{display:none}
+
+.striphd{display:flex;align-items:center;font-size:12.5px;font-weight:800;color:var(--navy);margin:8px 11px 4px}
+.striphd span{margin-left:auto;font-weight:700;color:var(--ink-2)}
+.stripwrap{position:relative;margin:0 11px;border-radius:14px;padding:7px;
+  background:linear-gradient(180deg,#EDE3CE,#DCCDAE);box-shadow:inset 0 2px 6px rgba(120,90,40,.25);border:2px solid #CBB794}
+.strip{display:flex;flex-wrap:wrap;gap:7px;overflow-x:hidden;overflow-y:auto;
+  min-height:172px;max-height:172px;align-content:flex-start;justify-content:center;
+  -webkit-overflow-scrolling:touch}
+.pcard2{flex:0 0 auto;width:86px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 3px;border:none;
+  border-radius:10px;background:#FFFDF7;box-shadow:0 2px 0 rgba(90,60,20,.35);cursor:grab;touch-action:none}
+.pcard2 img{width:100%;height:54px;object-fit:contain;display:block;pointer-events:none}
+.pcard2 b{font-size:12.5px;font-weight:800;color:var(--navy);line-height:1.2;pointer-events:none}
+.pcard2.rare{box-shadow:0 2px 0 rgba(90,60,20,.35),inset 0 0 0 2px rgba(201,146,43,.85)}
+.pcard2.held{opacity:.35}
+.pcard2.in{animation:pop .32s cubic-bezier(.2,1.4,.4,1)}
+.stripempty{position:absolute;inset:0;display:grid;place-items:center;margin:0;font-size:12px;font-weight:700;color:rgba(80,55,20,.6);pointer-events:none}
+.floatpiece{position:fixed;z-index:50;width:104px;height:80px;object-fit:contain;pointer-events:none;
+  transform:translate(-50%,-55%);filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
+
+.vb.hint{background:#FFE9A8;color:#7A5200;box-shadow:0 2px 0 #C79A2A}
+.vb.missb{background:rgba(255,255,255,.92);color:var(--red-d);cursor:default;
+  font-variant-numeric:tabular-nums;box-shadow:0 2px 0 rgba(120,90,40,.22)}
+.vb.missb b{font-size:13.5px;font-weight:800}
+.vb.leftb{background:rgba(255,255,255,.92);color:var(--sea-d);cursor:default;
+  font-variant-numeric:tabular-nums;box-shadow:0 2px 0 rgba(120,90,40,.22)}
+.vb.leftb b{font-size:14px;font-weight:800}
+.cornerbar{position:absolute;left:8px;right:8px;bottom:8px;z-index:6;display:flex;gap:6px;
+  align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.donenav{position:absolute;left:0;right:0;bottom:9px;z-index:7;display:flex;gap:7px;
+  justify-content:center;padding:0 10px;flex-wrap:wrap}
+.donenav button{border:none;border-radius:999px;cursor:pointer;font-size:13px;font-weight:800;
+  padding:10px 15px;background:rgba(255,255,255,.95);color:var(--navy);
+  box-shadow:0 3px 0 rgba(120,90,40,.28)}
+.donenav button.go{background:linear-gradient(180deg,#FFE9A8,#F5C64C);color:#6A4A00;
+  box-shadow:0 3px 0 #C79A2A;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob2{50%{transform:translateY(-4px)}}
+.donenav button.go{animation:bob2 1.6s ease-in-out infinite}
+.pcard2.shake{animation:shk .4s}
+@keyframes shk{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+.floatpiece.hit{filter:drop-shadow(0 0 14px rgba(224,53,63,.95)) drop-shadow(0 6px 8px rgba(0,0,0,.3));transform:translate(-50%,-55%) scale(1.12)}
+/* なまえ */
+.tinput{-webkit-user-select:text;user-select:text;width:100%;padding:11px 13px;border:2px solid var(--edge);border-radius:12px;background:#fff;
+  font:inherit;font-size:17px;font-weight:800;color:var(--navy);text-align:center}
+.nhelp{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--ink-2);text-align:center}
+.namechip{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-bottom:9px;
+  padding:8px 14px;border:2px solid var(--edge);border-radius:999px;background:var(--cream);
+  font-size:13px;font-weight:800;color:var(--navy);cursor:pointer}
+.namechip b{font-size:15px}
+.note{margin:0 2px 8px;font-size:11px;font-weight:700;line-height:1.6;color:var(--ink-2);text-align:center}
+.vertag{margin:5px 0 0;text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-2);opacity:.65}
+.namechip span{font-size:11px;font-weight:700;color:var(--ink-2);border-left:1.5px solid var(--edge);padding-left:8px}
+/* 完成画面で泳ぐマグロ */
+.swim{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2}
+.fishy{position:absolute;left:0;top:0;width:56px;height:35px;will-change:transform;
+  filter:drop-shadow(0 3px 5px rgba(20,60,100,.20))}
+.fishy svg{display:block;width:100%;height:100%}
+.bub{position:absolute;border-radius:50%;background:rgba(120,190,240,.28);
+  border:1.5px solid rgba(120,190,240,.5);animation:rise linear forwards}
+@keyframes rise{0%{transform:translateY(0) scale(.6);opacity:.9}100%{transform:translateY(-120px) scale(1.1);opacity:0}}
+/* 完成画面 */
+.confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:3}
+.confetti i{position:absolute;top:-18px;width:8px;height:13px;border-radius:2px;opacity:.95;
+  animation:fall linear infinite}
+.confetti i:nth-child(3n){width:11px;height:11px;border-radius:50%}
+.confetti i:nth-child(4n){width:6px;height:16px}
+@keyframes fall{0%{transform:translateY(-30px) rotate(0deg)}100%{transform:translateY(760px) rotate(760deg)}}
+.done-in{position:relative;z-index:4}
+.done-hello{margin:0 0 2px;font-size:14px;font-weight:800;color:var(--sea-d);letter-spacing:.04em}
+.stars{margin:2px 0 0;font-size:34px;line-height:1.1;letter-spacing:4px;color:var(--gold);
+  text-shadow:0 2px 0 rgba(201,146,43,.28)}
+.stars i{font-style:normal;display:inline-block;opacity:0;transform:scale(.4);
+  animation:pops .42s cubic-bezier(.2,1.5,.4,1) forwards}
+.stars i.off{color:#DED6C2;text-shadow:none}
+.stars i:nth-child(2){animation-delay:.16s}
+.stars i:nth-child(3){animation-delay:.32s}
+@keyframes pops{to{opacity:1;transform:scale(1)}}
+.rankt{margin:0 0 6px;font-size:16px;font-weight:800;color:var(--navy)}
+.bestbadge{display:inline-block;margin:0 0 11px;padding:5px 15px;border-radius:999px;
+  background:linear-gradient(180deg,#FFE9A8,#F5C64C);color:#6A4A00;font-size:13px;font-weight:800;
+  box-shadow:0 3px 0 #C79A2A}
+.reclist{list-style:none;margin:0;padding:0;counter-reset:r}
+.reclist li{counter-increment:r;display:flex;align-items:center;gap:8px;padding:4px 2px;
+  font-size:13px;font-weight:700;color:var(--navy);border-top:1px dashed var(--edge)}
+.reclist li:first-child{border-top:none}
+.reclist li::before{content:counter(r);flex:0 0 auto;width:19px;height:19px;border-radius:50%;
+  background:var(--edge);color:#6d5a34;font-size:11px;font-weight:800;display:grid;place-items:center}
+.reclist li:first-child::before{background:var(--gold);color:#fff}
+.reclist .who{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reclist .tm{flex:0 0 auto;font-variant-numeric:tabular-nums}
+.reclist .ms{flex:0 0 auto;width:56px;text-align:right;font-size:11px;color:var(--ink-2)}
+.reclist li.now{background:#FFF6DF;border-radius:8px}
+.reclist li.now .who::after{content:"　← いま";font-size:10px;color:var(--red-d)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+
+<div class="app">
+  <header class="hdr hide" id="hdr">
+    <button class="icb" id="btnBack" aria-label="もどる">←</button>
+    <span class="countpill" id="countPill" hidden>0/27</span>
+    <div class="hdrmid"><h2 id="hdrTitle">あそびかた</h2><span class="hdrtime" id="hdrTime" hidden>⏱ 0:00</span></div>
+    <button class="icb" id="btnPause" aria-label="メニュー" hidden>⏸</button>
+  </header>
+  <div class="bar" id="barWrap" hidden><i id="barFill"></i></div>
+
+  <div class="boardwrap">
+    <div class="board">
+      <canvas id="gl"></canvas>
+      <span class="layerpill" id="layerPill" hidden></span>
+      <div class="cornerbar" id="cornerBar">
+        <button class="vb hint" id="vbHint" hidden>💡 ヒント</button>
+        <span class="vb missb" id="vbMiss" hidden>ミス <b id="vbMissN">0</b></span>
+        <span class="vb leftb" id="vbLeft" hidden>のこり <b id="vbLeftN">27</b></span>
+      </div>
+      <div class="spinmsg" id="loading">3Dマグロを組み立て中…</div>
+      <div class="donenav" id="doneNav" hidden>
+        <button id="navTop">🏠 トップへ</button>
+        <button id="navAgain">🔁 もう一度 解体</button>
+        <button class="go" id="navNext">🧩 組み立てに ちょうせん！</button>
+      </div>
+      <button class="donebanner" id="doneBanner" hidden>✨ 完成！　回してながめられます　—　タップで結果へ</button>
+    </div>
+  </div>
+
+  <div class="playbody" id="playBody" hidden>
+    <div class="nowbar idle" id="nowBar"><span class="sw"></span><span class="tx"><span class="nm">パーツをタップしてね</span><span class="ds">ドラッグで回転、ホイールで拡大。</span></span></div>
+    <div class="striphd">🍣 パーツ置き場<span id="stripCount">0 個</span></div>
+    <div class="stripwrap">
+      <div class="strip" id="strip"></div>
+      <p class="stripempty" id="stripEmpty">はずしたパーツがここに並びます</p>
+    </div>
+  </div>
+
+  <div class="ov clear" id="ovTitle">
+    <div class="logo"><span class="l1">マグロ</span><br><span class="l2">部位パズル</span>
+      <span class="sub">パーツをはずして、部位の名前をおぼえよう！</span></div>
+    <div class="grow"></div>
+    <button class="namechip" id="btnName">👤 <b id="whoName">ゲスト</b><span>なまえをかえる</span></button>
+    <div class="btns">
+      <button class="big" id="goKaitai">▶　解体をはじめる</button>
+      <button class="big sub sm" id="goKumitate">🧩　組み立てて遊ぶ</button>
+      <button class="big sub sm" id="goHowto">📖　あそびかた</button>
+      <button class="big sub sm" id="goParts">🐟　パーツ一覧</button>
+      <p class="vertag">v<span id="appVer">-</span></p>
+    </div>
+  </div>
+
+  <div class="ov solid hide" id="ovHowto">
+    <h3>あそびかた</h3>
+    <div class="card">
+      <ol class="steps">
+        <li><span class="n">1</span><p>上の画面でマグロが<em>宙に浮いて</em>います。ドラッグで回転、ホイールや2本指で拡大。<em>つまんだ場所が回転の中心</em>になります。</p></li>
+        <li><span class="n">2</span><p>パーツを<em>タップ</em>すると外れて、下の<em>パーツ置き場</em>に並びます。手前の皮からどうぞ。</p></li>
+        <li><span class="n">3</span><p>組み立ては、下のパーツを<em>マグロへドラッグ</em>。形をよく見て、合う場所にそっと置きます。わからなくなったら<em>💡ヒント</em>を押すと、入る場所が光ります。</p></li>
+        <li><span class="n">4</span><p>ぜんぶで<em>27パーツ</em>。かしらは外れません。目玉・のうてん・ほほにくは、かしらにはめ込みます。</p></li>
+      </ol>
+    </div>
+    <p class="note">※ 魚の部位の名前をおぼえるために、個人で作ったアプリです。実在の商品・企業とは関係ありません。</p>
+    <div class="grow"></div>
+    <div class="btns"><button class="big" id="howtoStart">はじめる</button></div>
+  </div>
+
+  <div class="ov solid hide" id="ovParts"><h3>パーツ一覧</h3><div id="partsList"></div></div>
+
+  <div class="ov solid hide" id="ovName">
+    <h3>なまえを おしえてね</h3>
+    <div class="card">
+      <p class="nhelp">きろくに なまえが のこります。あとから かえられます。</p>
+      <input id="nameInput" class="tinput" type="text" maxlength="8" placeholder="れい：たろう" autocomplete="off">
+    </div>
+    <div class="grow"></div>
+    <div class="btns"><button class="big" id="nameOk">これで はじめる</button></div>
+  </div>
+
+  <div class="ov solid hide" id="ovDone">
+    <div class="confetti" id="confetti"></div>
+    <div class="swim" id="swim"></div>
+    <div class="done-in">
+      <p class="done-hello" id="doneHello"></p>
+      <p class="done-ttl" id="doneTtl">解体完了！</p>
+      <p class="stars" id="doneStars"></p>
+      <p class="rankt" id="doneRank"></p>
+      <p class="done-time" id="doneTime">0:00</p>
+      <p class="done-meta" id="doneMeta"></p>
+      <p class="bestbadge" id="doneBest" hidden>🏆 じこベスト更新！</p>
+      <div class="rec" id="doneRec"></div>
+      <div class="btns">
+        <button class="big" id="doneAgain">もう一度あそぶ</button>
+        <button class="big sub sm" id="doneOther">組み立てに挑戦</button>
+        <button class="big sub sm" id="doneTop">トップへ</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet hide" id="sheet">
+    <div class="sheet-in"><h3 id="pauseTtl">ちょっと休けい</h3>
+      <div class="btns">
+        <button class="big" id="pvResume">つづける</button>
+        <button class="big sub sm" id="pvLabel">部位名をかくす（上級）</button>
+        <button class="big sub sm" id="pvRestart">最初からやり直す</button>
+        <button class="big sub sm" id="pvTop">トップへもどる</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ===== マグロの立体パーツ（かみ合う波形の合わせ目つき） ===== */
+var L=9;
+var PROF=[
+ [0.00,0.08,0.09,0.22],[0.05,0.72,0.72,0.14],[0.11,1.24,1.18,0.07],[0.18,1.62,1.50,0.02],
+ [0.27,1.87,1.66,0.00],[0.38,1.95,1.70,0.00],[0.50,1.84,1.56,0.02],[0.62,1.56,1.26,0.05],
+ [0.74,1.20,0.88,0.09],[0.84,0.82,0.56,0.12],[0.92,0.50,0.32,0.14],[0.97,0.29,0.17,0.15],
+ [1.00,0.19,0.11,0.15]];
+function cr(p0,p1,p2,p3,t){var t2=t*t,t3=t2*t;
+  return 0.5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t2+(-p0+3*p1-3*p2+p3)*t3);}
+function prof(u){
+  u=Math.max(0,Math.min(1,u));
+  var i=0; while(i<PROF.length-2&&PROF[i+1][0]<u) i++;
+  var a=PROF[Math.max(0,i-1)],b=PROF[i],c=PROF[i+1],d=PROF[Math.min(PROF.length-1,i+2)];
+  var t=(u-b[0])/(c[0]-b[0]||1);
+  return {ry:Math.max(0.02,cr(a[1],b[1],c[1],d[1],t)),rz:Math.max(0.02,cr(a[2],b[2],c[2],d[2],t)),yc:cr(a[3],b[3],c[3],d[3],t)};
+}
+function P(u,t,s,o){
+  var th=t*Math.PI,p=prof(u);
+  o=o||new THREE.Vector3();
+  return o.set((u-0.5)*L, p.yc+s*p.ry*Math.cos(th), s*p.rz*Math.sin(th));
+}
+/* 合わせ目の波（凹凸）。同じ境界値なら両側で必ず同じ形になる */
+function knob(x){ return Math.tanh(2.6*Math.sin(2*Math.PI*x)); }
+function ph(v){ var x=Math.sin(v*97.13)*43758.5453; return x-Math.floor(x); }
+var AU=0.030, AT=0.055;
+function seamU(uv,t){ return uv+AU*knob(ph(uv)+t*0.62); }
+function seamT(tv,u){ return tv+AT*knob(ph(tv*3.1)+u*1.15); }
+
+function addGrid(st,fn,na,nb,uva,uvb,flip){
+  var base=st.pos.length/3,v=new THREE.Vector3(),i,j;
+  for(i=0;i<=na;i++) for(j=0;j<=nb;j++){
+    fn(i/na,j/nb,v); st.pos.push(v.x,v.y,v.z); st.uv.push(i/na*uva,j/nb*uvb);
+  }
+  for(i=0;i<na;i++) for(j=0;j<nb;j++){
+    var a=base+i*(nb+1)+j,b=a+1,c=a+(nb+1),d=c+1;
+    if(flip) st.idx.push(a,b,d,a,d,c); else st.idx.push(a,d,b,a,c,d);
+  }
+}
+function shellGeo(g){
+  var full=Math.abs(g.t1-g.t0)>=1.98;
+  var EU=g.blob?0:0.007, ET=full?0:0.012;
+  var RD=(g.round===0)?0:0.30;          /* ふちの丸み */
+  function pos(a0,b0,c,o){
+    var a=EU+a0*(1-2*EU), b=ET+b0*(1-2*ET);
+    if(RD>0){
+      var dd=Math.min(a0,1-a0,full?1:b0,full?1:(1-b0));
+      var kk=Math.min(1,dd/0.10);
+      c=c*(1-RD*(1-kk)*(1-kk));
+    }
+    var un=g.u0+(g.u1-g.u0)*a, tn=g.t0+(g.t1-g.t0)*b;
+    var uL=g.ulo?g.ulo(tn):(g.wu0?seamU(g.u0,tn):g.u0),
+        uR=g.uhi?g.uhi(tn):(g.wu1?seamU(g.u1,tn):g.u1);
+    var tA=g.wt0?seamT(g.t0,un):g.t0, tB=g.wt1?seamT(g.t1,un):g.t1;
+    return P(uL+(uR-uL)*a, tA+(tB-tA)*b, g.s0+(g.s1-g.s0)*c, o);
+  }
+  var q=(g.chunky?0.85:1);
+  var nu=Math.max(3,Math.round((g.u1-g.u0)*44*q)),
+      nt=Math.max(3,Math.round(Math.abs(g.t1-g.t0)*24*q)), ns=2;
+  var st={pos:[],uv:[],idx:[]};
+  var P0=0.06;   /* 側面は左上の無地エリアに寄せる */
+  addGrid(st,function(a,b,v){pos(a,1-b,1,v);},nu,nt,1,1,true);              /* 外＝彫り文字面 */
+  st.outerEnd=st.pos.length/3;
+  addGrid(st,function(a,b,v){pos(a,b,0,v);},nu,nt,P0,P0,true);             /* 内 */
+  addGrid(st,function(a,b,v){pos(0,a,b,v);},nt,ns,P0,P0,true);
+  addGrid(st,function(a,b,v){pos(1,a,b,v);},nt,ns,P0,P0,false);
+  if(!full){
+    addGrid(st,function(a,b,v){pos(a,0,b,v);},nu,ns,P0,P0,false);
+    addGrid(st,function(a,b,v){pos(a,1,b,v);},nu,ns,P0,P0,true);
+  }
+  var geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.Float32BufferAttribute(st.pos,3));
+  geo.setAttribute("uv",new THREE.Float32BufferAttribute(st.uv,2));
+  geo.setIndex(st.idx); geo.computeVertexNormals();
+  geo.userData={outerEnd:st.outerEnd};
+  return geo;
+}
+function holeGeo(g){
+  /* 長方形の板に「丸い穴」をあけたパーツ（めだま用） */
+  var N=44, st={pos:[],uv:[],idx:[]};
+  var wu=P(g.u0,(g.t0+g.t1)/2,g.s1).distanceTo(P(g.u1,(g.t0+g.t1)/2,g.s1));
+  var wt=P((g.u0+g.u1)/2,g.t0,g.s1).distanceTo(P((g.u0+g.u1)/2,g.t1,g.s1));
+  var ra=g.hr/Math.max(0.01,wu), rb=g.hr/Math.max(0.01,wt);
+  var ca=g.ha||0.5, cb=g.hb||0.5;
+  function ab(a,b,c,o){
+    return P(g.u0+(g.u1-g.u0)*a, g.t0+(g.t1-g.t0)*b, g.s0+(g.s1-g.s0)*c, o);
+  }
+  function edge(th){
+    var dx=Math.cos(th),dy=Math.sin(th),best=1e9;
+    if(dx>1e-6) best=Math.min(best,(1-ca)/dx); if(dx<-1e-6) best=Math.min(best,(0-ca)/dx);
+    if(dy>1e-6) best=Math.min(best,(1-cb)/dy); if(dy<-1e-6) best=Math.min(best,(0-cb)/dy);
+    return [ca+dx*best, cb+dy*best];
+  }
+  var v=new THREE.Vector3();
+  function push(a,b,c,ua,ub){ ab(a,b,c,v); st.pos.push(v.x,v.y,v.z); st.uv.push(ua,ub); }
+  function quad(i0,i1,i2,i3){ st.idx.push(i0,i1,i2, i0,i2,i3); }
+  for(var face=0;face<2;face++){
+    var cc=face?0:1, base=st.pos.length/3;
+    for(var i=0;i<=N;i++){
+      var th=i/N*Math.PI*2;
+      var ha=ca+Math.cos(th)*ra, hb=cb+Math.sin(th)*rb;
+      var e=edge(th);
+      push(ha,1-hb,cc,ha,hb); push(e[0],1-e[1],cc,e[0],e[1]);
+    }
+    for(var i2=0;i2<N;i2++){
+      var o=base+i2*2;
+      if(face) quad(o,o+1,o+3,o+2); else quad(o,o+2,o+3,o+1);
+    }
+  }
+  var wb=st.pos.length/3;
+  for(var i3=0;i3<=N;i3++){
+    var th3=i3/N*Math.PI*2;
+    var ha3=ca+Math.cos(th3)*ra, hb3=cb+Math.sin(th3)*rb;
+    push(ha3,1-hb3,1,0.05,0.05); push(ha3,1-hb3,0,0.05,0.05);
+  }
+  for(var i4=0;i4<N;i4++){ var o4=wb+i4*2; quad(o4,o4+2,o4+3,o4+1); }
+  var geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.Float32BufferAttribute(st.pos,3));
+  geo.setAttribute("uv",new THREE.Float32BufferAttribute(st.uv,2));
+  geo.setIndex(st.idx); geo.computeVertexNormals();
+  geo.userData={outerEnd:st.pos.length/3};
+  return geo;
+}
+function blobGeo(g){
+  var geo=new THREE.SphereGeometry(1,22,16);
+  geo.scale(g.r[0],g.r[1],g.r[2]);
+  var c=P(g.u,g.t,g.s); geo.translate(c.x,c.y,c.z);
+  return geo;
+}
+/* ===== 胴体ブロック（スラブ）=====
+   横から見たすがた（シルエット）は A も B も同じ。
+   ちがうのは「奥ゆき」。手前から  A → なかおち → B  と重なる。
+   せ（上）とはら（下）で胴体をぜんぶ分け合い、その合わせ目のまわりに
+   「木の葉形のくぼみ」がある。そこへ「あかみ」の板がはまる。 */
+var SO=0.86;            /* 身のいちばん外がわ（皮のすぐ内がわ） */
+var ZA=0.440, ZAK=0.300, ZP1=0.290, ZP0=0.190, ZB=0.175;
+function cl(z,qz){ var l=qz*0.995; return z>l?l:(z<-l?-l:z); }
+
+/* --- せとはらの分かれ目と、あかみの木の葉形 --- */
+var AKU0=0.322, AKU1=0.898;    /* 木の葉の前はしと後ろはし */
+var AKW=0.140;                 /* いちばん太いところの半分 */
+var AKDEEP=0.160;              /* くぼみの深さ（＝あかみの厚み） */
+function akMid(u){             /* せ と はら の分かれ目 */
+  var w=Math.max(0,Math.min(1,(u-0.322)/0.578));
+  return 0.515-0.055*w;
+}
+function akHalf(u){
+  if(u<=AKU0||u>=AKU1) return 0;
+  var w=(u-AKU0)/(AKU1-AKU0);
+  return Math.max(0.014, AKW*Math.pow(Math.sin(Math.PI*Math.pow(w,0.82)),0.62));
+}
+function akTop(u){ return akMid(u)-akHalf(u); }
+function akBot(u){ return akMid(u)+akHalf(u); }
+function akIn(u,t){            /* 1＝くぼみのまん中、0＝くぼみの外 */
+  var h=akHalf(u); if(h<=0.002) return 0;
+  var d=Math.abs(t-akMid(u))/h;
+  if(d>=1.18) return 0;
+  if(d<=0.72) return 1;
+  var s=(1.18-d)/0.46;
+  return s*s*(3-2*s);
+}
+/* カマ と カマとろ の境目。上は細く、下（腹がわ）へいくほどカマとろが広がる */
+function ss(x){ x=x<0?0:(x>1?1:x); return x*x*(3-2*x); }
+function kbk(t){        /* カマの後ろのふち＝カマとろの前のふち（カマのほうが少し小さい） */
+  return 0.236-0.026*ss((t-0.20)/0.45);
+}
+function aDish(u,t,qz,rz){ return qz-AKDEEP*rz*akIn(u,t); }               /* Aがわのくぼみ */
+function bDish(u,t,qz,rz){ return cl((ZB-AKDEEP*akIn(u,t))*rz,qz); }      /* Bがわのくぼみ */
+
+function zFace(k,u,t,qz,rz){
+  if(k==="S")  return  qz;               /* 手前の身の表面 */
+  if(k==="F")  return -qz;               /* 向こうがわの表面 */
+  if(typeof k==="function") return k(u,t,qz,rz);
+  return cl(k*rz,qz);                    /* 平らな面（奥ゆき一定） */
+}
+/* はらの下がわのくぼみ＝内臓の上がわ。両方で同じ式を使うのでピタリ合う */
+var ORG=[[0.348,0.468],[0.525,0.660],[0.735,0.865]];
+var ORGBASE=0.950, ORGD=0.225;
+function bellyLo(u){
+  for(var i=0;i<ORG.length;i++){
+    var o=ORG[i];
+    if(u>o[0]&&u<o[1]){
+      var w=(u-o[0])/(o[1]-o[0]);
+      return ORGBASE-ORGD*Math.pow(Math.sin(Math.PI*w),0.55);
+    }
+  }
+  return ORGBASE;
+}
+function slabGeo(g){
+  var RD=(g.round===0)?0:0.40;     /* ふちの面取り（うすくなる） */
+  var BV=(g.round===0)?0:0.055;    /* 表と裏の面のふちを少し内がわへ */
+  var qv=new THREE.Vector3();
+  function pos(a0,b0,c0,o){
+    var dd=Math.min(a0,1-a0,b0,1-b0), kk=Math.min(1,dd/0.085);
+    var c=0.5+(c0-0.5)*(1-RD*(1-kk)*(1-kk));
+    var dc=Math.min(c0,1-c0), kc=Math.min(1,dc/0.32);
+    var sh=BV*(1-kc)*(1-kc);
+    var a=sh+a0*(1-2*sh), b=sh+b0*(1-2*sh);
+    var un=g.u0+(g.u1-g.u0)*a, tn=g.t0+(g.t1-g.t0)*b;
+    var uL=g.ulo?g.ulo(tn):(g.wu0?seamU(g.u0,tn):g.u0),
+        uR=g.uhi?g.uhi(tn):(g.wu1?seamU(g.u1,tn):g.u1);
+    var u=uL+(uR-uL)*a;
+    var tA=g.lo?g.lo(u):(g.wt0?seamT(g.t0,un):g.t0);
+    var tB=g.hi?g.hi(u):(g.wt1?seamT(g.t1,un):g.t1);
+    var t=tA+(tB-tA)*b;
+    P(u,t,SO,qv);
+    var rz=prof(u).rz;
+    var zn=zFace(g.zn,u,t,qv.z,rz), zf=zFace(g.zf,u,t,qv.z,rz);
+    if(zn<zf){ var mm=(zn+zf)*0.5; zn=mm; zf=mm; }      /* ふちで薄くつぶれる */
+    return o.set(qv.x,qv.y,zf+(zn-zf)*c);
+  }
+  var fine=(g.dish||g.lo||g.hi||g.ulo||g.uhi)?1:0;
+  var nu=Math.max(8,Math.round((g.u1-g.u0)*(fine?92:50))),
+      nt=Math.max(5,Math.round((g.t1-g.t0)*(g.dish?68:((g.ulo||g.uhi)?46:26)))), ns=3;
+  var st={pos:[],uv:[],idx:[]}, P0=0.06;
+  addGrid(st,function(a,b,v){pos(a,1-b,1,v);},nu,nt,1,1,true);     /* 手前＝彫り文字の面 */
+  st.outerEnd=st.pos.length/3;
+  addGrid(st,function(a,b,v){pos(a,b,0,v);},nu,nt,P0,P0,true);     /* 向こうがわ */
+  addGrid(st,function(a,b,v){pos(0,a,b,v);},nt,ns,P0,P0,true);
+  addGrid(st,function(a,b,v){pos(1,a,b,v);},nt,ns,P0,P0,false);
+  addGrid(st,function(a,b,v){pos(a,0,b,v);},nu,ns,P0,P0,false);
+  addGrid(st,function(a,b,v){pos(a,1,b,v);},nu,ns,P0,P0,true);
+  var geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.Float32BufferAttribute(st.pos,3));
+  geo.setAttribute("uv",new THREE.Float32BufferAttribute(st.uv,2));
+  geo.setIndex(st.idx); geo.computeVertexNormals();
+  geo.userData={outerEnd:st.outerEnd};
+  return geo;
+}
+/* ===== 部位マスタ（20パーツ・骨単体なし／中落ちに背骨とあばらが付く） ===== */
+var KIND={
+  dotai:{n:"どうたい",y:"胴体（皮）",g:"皮",tone:"skin",rare:0,label:"どうたい",
+    d:"銀色に光る手前側の皮。これを外すと中の身が見える。まずはここから。"},
+  nouten:{n:"のうてん",y:"脳天",g:"大トロ",tone:"dark",rare:1,label:"のうてん",
+    d:"頭の上、目と目のあいだの細長い部位。1匹からごくわずか。ねっとり甘い。"},
+  medama:{n:"めだま",y:"目玉",g:"その他",tone:"eyeball",rare:1,label:"",
+    d:"目のまわり。まるい玉を、かしらの穴にはめこむ。ゼラチン質でコラーゲンたっぷり。"},
+  hohoniku:{n:"ほほにく",y:"頬肉",g:"赤身",tone:"silver",rare:1,label:"ほほにく",
+    d:"ほっぺたの肉。ステーキのような食感。1匹から左右ふたつだけ。"},
+  agoniku:{n:"あごにく",y:"顎肉",g:"その他",tone:"silver",rare:1,label:"あごにく",
+    d:"あごの下の肉。よく動く部位なので旨みが濃く、皮ぎしの脂も楽しめる。"},
+  kamatoro:{n:"カマとろ",y:"カマトロ",g:"大トロ",tone:"oo",rare:1,label:"カマとろ",
+    d:"カマのすぐ内側、エラのふちにそった三日月形。とくに脂がのった最高級の希少部位。"},
+  kama:{n:"カマ",y:"かま",g:"その他",tone:"chu",rare:0,label:"カマ",
+    d:"エラの後ろ、胸びれの付け根。骨のまわりに旨みが集まる。塩焼きが定番。"},
+  nakaochi:{n:"なかおち",y:"中落ち（背骨つき）",g:"赤身",tone:"rare",rare:1,label:"なかおち",ribs:1,
+    d:"背骨とあばらが付いた中落ち。これを外すと、下からあかみが出てくる。解体の日だけの味。"},
+  sekami:{n:"せかみ",y:"背上／中トロ",g:"中トロ",tone:"chu",rare:0,label:"せかみ",
+    d:"背の頭側。赤身に近い上品な脂で、すっきりした中トロ。"},
+  senaka:{n:"せなか",y:"背中／中トロ",g:"中トロ",tone:"chu",rare:0,label:"せなか",
+    d:"背の中央。形がよく整い、サクどりの手本のような部位。"},
+  seshimo:{n:"せしも",y:"背下／中トロ",g:"中トロ",tone:"chu",rare:0,label:"せしも",
+    d:"背の尾側。よく泳ぐ部分なので身が締まっている。"},
+  akami:{n:"あかみ",y:"赤身",g:"赤身",tone:"aka",rare:0,label:"あかみ",
+    d:"背骨まわりの赤身。Aは中落ちの上、Bは中落ちの下に入る。鉄分が多くマグロらしい味。"},
+  harakami:{n:"はらかみ",y:"腹上／大トロ",g:"大トロ",tone:"oo",rare:0,label:"はらかみ",
+    d:"腹の頭側。いちばん脂がのる最高級の大トロ。口の中でとろける。"},
+  haranaka:{n:"はらなか",y:"腹中／大トロ",g:"大トロ",tone:"oo",rare:0,label:"はらなか",
+    d:"腹の中央。大トロと中トロの境目で、味が変わっていく。"},
+  harashimo:{n:"はらしも",y:"腹下／中トロ",g:"中トロ",tone:"chu",rare:0,label:"はらしも",
+    d:"腹の尾側。赤身と脂のバランスがよく、食べやすい。"},
+  tail:{n:"テール",y:"尾の身",g:"赤身",tone:"aka",rare:1,label:"テール",
+    d:"尾の付け根。筋は多いがステーキにすると絶品。競りで脂を見る場所。"},
+  hatsu:{n:"ハツ",y:"心臓",g:"その他",tone:"organ",rare:1,label:"ハツ",
+    d:"心臓。コリコリした食感で、刺身でも焼いても。"},
+  wata:{n:"ワタ",y:"内臓",g:"その他",tone:"organ2",rare:1,label:"ワタ",
+    d:"胃や腸などの内臓。しっかり掃除して湯引きに。市場ならではの部位。"},
+  tamago:{n:"たまご",y:"卵巣",g:"その他",tone:"egg",rare:1,label:"たまご",
+    d:"卵巣。煮付けにすると濃厚。雌の個体からしか取れない。"}
+};
+var PARTS=[];
+function add(kind,layer,g,pull,side){
+  PARTS.push({id:kind+(side||""),kind:kind,side:side||"",layer:layer,g:g,pull:pull||null});
+}
+/* layer 0=皮 1=頭 2=外の身A・カマ 3=あかみA 4=なかおち 5=あかみB 6=中の身B・内臓
+   境界値は隣どうしで共有＝断面がピタリ合う */
+add("dotai",0,{round:0,u0:0.158,u1:0.985,t0:0.02,t1:0.98,s0:0.88,s1:1.00,wu0:0,wu1:0,wt0:0,wt1:0});
+add("nouten",1,{u0:0.06,u1:0.16,t0:0.04,t1:0.22,s0:0.78,s1:1.00,wu0:0,wu1:0,wt0:0,wt1:0});
+add("medama",1,{blob:1,u:0.105,t:0.40,s:0.86,r:[0.30,0.30,0.30]});
+add("hohoniku",1,{u0:0.06,u1:0.16,t0:0.56,t1:0.80,s0:0.78,s1:1.00,wu0:0,wu1:0,wt0:0,wt1:0});
+add("agoniku",1,{u0:0.04,u1:0.16,t0:0.84,t1:0.99,s0:0.78,s1:1.00,wu0:0,wu1:0,wt0:0,wt1:0});
+/* せ＝分かれ目より上、はら＝分かれ目より下。ふたつで胴体をぜんぶ分け合う。
+   その表面にある木の葉形のくぼみへ「あかみ」がはまる。 */
+function SE(o){ o.slab=1; o.dish=1; o.s1=SO; o.t0=0.045; o.t1=0.500; o.hi=akMid; o.lsh=-0.24; return o; }
+function HA(o){ o.slab=1; o.dish=1; o.s1=SO; o.t0=0.490; o.t1=0.950; o.lo=akMid; o.lsh=0.20; return o; }
+function HB(o){ HA(o); o.hi=bellyLo; return o; }   /* B側だけ内臓のくぼみあり */
+function AK(o){ o.slab=1; o.dish=1; o.s1=SO; o.u0=AKU0; o.u1=AKU1; o.t0=0.340; o.t1=0.660;
+                o.lo=akTop; o.hi=akBot; o.wu0=0; o.wu1=0; return o; }
+function A_(o){ o.zn="S"; o.zf=ZA; o.dish=0; return o; }   /* 手前の身（A）：あかみの上にかぶさる */
+function B_(o){ o.zn=bDish; o.zf="F"; return o; }  /* 中の身（B） */
+/* --- 外の身（A）：手前の面は皮の下のふくらみ、裏は平ら --- */
+add("kama",2,{slab:1,s1:SO,zn:"S",zf:"F",lwu:0.82,u0:0.166,u1:0.236,t0:0.045,t1:0.950,
+              uhi:kbk,wu0:0,wu1:0,wt0:0,wt1:0});
+add("sekami",  2,A_(SE({u0:0.322,u1:0.510,wu0:0,wu1:1,wt0:0})),null,"A");
+add("senaka",  2,A_(SE({u0:0.510,u1:0.710,wu0:1,wu1:1,wt0:0})),null,"A");
+add("seshimo", 2,A_(SE({u0:0.710,u1:0.900,wu0:1,wu1:1,wt0:0})),null,"A");
+add("harakami",2,A_(HA({u0:0.322,u1:0.510,wu0:0,wu1:1})),null,"A");
+add("haranaka",2,A_(HA({u0:0.510,u1:0.710,wu0:1,wu1:1})),null,"A");
+add("harashimo",2,A_(HA({u0:0.710,u1:0.900,wu0:1,wu1:1})),null,"A");
+add("akami",   3,AK({zn:ZA-0.012,zf:ZAK}),null,"A");   /* 外の身Aの下、なかおちの上 */
+function TL(o){ o.slab=1; o.s1=SO; o.u0=0.900; o.u1=1.000; o.t0=0.045; o.t1=0.950;
+                o.wu0=1; o.wu1=0; o.wt0=0; o.wt1=0; return o; }
+add("tail",2,TL({zn:"S",zf:ZA}),null,"A");
+/* --- なかおち（背骨つきのうすい板）とカマとろ（カマの内がわ） --- */
+add("nakaochi",4,{slab:1,s1:SO,zn:ZP1,zf:ZP0,u0:0.322,u1:0.930,t0:0.045,t1:0.940,wu0:0,wu1:0,wt0:0,wt1:1});
+add("kamatoro",2,{slab:1,s1:SO,zn:"S",zf:"F",lwu:0.82,u0:0.210,u1:0.290,t0:0.045,t1:0.950,
+                  ulo:kbk,wu0:0,wu1:0,wt0:0,wt1:0});
+/* --- 中の身（B）：Aとおなじ形。奥ゆきいっぱいの厚いブロック --- */
+add("sekami",  6,B_(SE({u0:0.322,u1:0.510,wu0:0,wu1:1,wt0:0})),null,"B");
+add("senaka",  6,B_(SE({u0:0.510,u1:0.710,wu0:1,wu1:1,wt0:0})),null,"B");
+add("seshimo", 6,B_(SE({u0:0.710,u1:0.900,wu0:1,wu1:1,wt0:0})),null,"B");
+add("harakami",6,B_(HB({u0:0.322,u1:0.510,wu0:0,wu1:1})),null,"B");
+add("haranaka",6,B_(HB({u0:0.510,u1:0.710,wu0:1,wu1:1})),null,"B");
+add("harashimo",6,B_(HB({u0:0.710,u1:0.900,wu0:1,wu1:1})),null,"B");
+add("akami",   5,AK({zn:ZB,zf:bDish}),null,"B");    /* なかおちの下、中の身Bの上 */
+add("tail",    6,TL({zn:ZA-0.012,zf:"F"}),null,"B");
+/* --- 内臓：はらの下のくぼみにピタリとはまる丸いかたまり --- */
+function OR(o){ o.slab=1; o.s1=SO; o.zn=ZB; o.zf="F"; o.t0=0.690; o.t1=0.950;
+                o.lo=bellyLo; o.wu0=0; o.wu1=0; return o; }
+add("hatsu", 6,OR({u0:0.310,u1:0.445}));
+add("wata",  6,OR({u0:0.520,u1:0.660}));
+add("tamago",6,OR({u0:0.735,u1:0.865}));
+var TOTAL=PARTS.length;
+/* ===== 外れない骨組み（かしらは半分が板＋3つの穴） ===== */
+var FRAME=[
+  {u0:0.18,u1:0.985,t0:-0.98,t1:-0.02,s0:0.88,s1:1.00,skin:1},        /* 向こう側の皮 */
+  {u0:0.00,u1:0.18,t0:-0.99,t1:-0.02,s0:0.78,s1:1.00,skin:1,face:1},  /* かしらA（目のある側） */
+  {u0:0.00,u1:0.18,t0:-0.07,t1:0.07,s0:0.78,s1:1.00,skin:1},          /* 頭の背 */
+  {u0:0.00,u1:0.06,t0:0.02,t1:0.99,s0:0.78,s1:1.00,skin:1},           /* 口先 */
+  {u0:0.158,u1:0.174,t0:0.02,t1:0.99,s0:0.70,s1:0.97,skin:1},         /* かしらのうしろの細いふち */
+  {u0:0.290,u1:0.322,t0:0.02,t1:0.99,s0:0.72,s1:0.876,skin:1},        /* 銀のふち（カマとろのうしろ） */
+  {u0:0.06,u1:0.16,t0:0.02,t1:0.045,s0:0.78,s1:1.00,skin:1},          /* 枠：上 */
+  {hole:1,hr:0.33,u0:0.055,u1:0.165,t0:0.22,t1:0.56,s0:0.80,s1:1.00,skin:1}, /* 目のまるい穴 */
+  {u0:0.06,u1:0.16,t0:0.80,t1:0.845,s0:0.78,s1:1.00,skin:1},          /* 枠：ほほとあごのあいだ */
+  {u0:0.04,u1:0.172,t0:0.02,t1:0.99,s0:0.56,s1:0.74,skin:0},          /* 穴の底 */
+  {u0:0.10,u1:0.985,t0:-0.05,t1:0.05,s0:0.82,s1:1.04,skin:0},         /* 背のふち */
+  {u0:0.158,u1:0.94,t0:0.95,t1:1.05,s0:0.82,s1:1.04,skin:0}           /* 腹のふち */
+];
+
+(function(){
+"use strict";
+var APP_VERSION="1.0.0";
+var $=function(s){return document.querySelector(s);};
+var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
+if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
+
+/* ================= 3D ================= */
+var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+var scene=new THREE.Scene();
+var camera=new THREE.PerspectiveCamera(36,16/10,0.1,400);
+scene.add(new THREE.AmbientLight(0xfff6f2,0.52));
+scene.add(new THREE.HemisphereLight(0xffffff,0x93a2ab,0.45));
+var d1=new THREE.DirectionalLight(0xffffff,0.72); d1.position.set(6,12,11); scene.add(d1);
+var d2=new THREE.DirectionalLight(0xe6eef5,0.34); d2.position.set(-9,5,-8); scene.add(d2);
+var d3=new THREE.DirectionalLight(0xffffff,0.2); d3.position.set(0,-8,4); scene.add(d3);
+var root=new THREE.Group(); scene.add(root);
+
+var TONE={dark:0x2C3238,eyeball:0xFFFFFF,silver:0xC9D4DA,skin:0xD3DDE2,organ2:0x8A4F3C,oo:0xF2909F,chu:0xE85C72,aka:0xC62B3C,rare:0xD8465A,
+          bone:0xF2EDE2,organ:0x8E1F2C,egg:0xD86B4E,eye:0xE9E4DA};
+
+function hx(n){return '#'+('000000'+n.toString(16)).slice(-6);}
+function cv(w,h,draw){var c=document.createElement("canvas");c.width=w;c.height=h;draw(c.getContext("2d"),c);return c;}
+function grainOn(x,w,h,dark){
+  for(var i=0;i<26;i++){
+    x.strokeStyle=i%4===0?"rgba(255,255,255,.26)":"rgba(255,255,255,.12)";
+    x.lineWidth=2+Math.random()*5; x.beginPath();
+    var y=Math.random()*h; x.moveTo(-10,y); x.bezierCurveTo(w*0.3,y-h*0.08,w*0.7,y+h*0.08,w+10,y+2); x.stroke();
+  }
+  for(var j=0;j<16;j++){
+    x.strokeStyle="rgba("+(dark||"150,110,115")+",.17)"; x.lineWidth=2+Math.random()*3; x.beginPath();
+    var y2=Math.random()*h; x.moveTo(-10,y2); x.bezierCurveTo(w*0.3,y2+h*0.06,w*0.7,y2-h*0.06,w+10,y2); x.stroke();
+  }
+}
+/* 部位名を彫り込んだテクスチャ */
+function partTex(kind,wu,wt,noLabel,lsh){
+  var k=KIND[kind], W=512,H=256;
+  var c=cv(W,H,function(x){
+    var base=(k.tone==="skin")?"#ffffff":hx(TONE[k.tone]||0xdddddd);
+    x.fillStyle=base; x.fillRect(0,0,W,H);
+    if(k.tone!=="skin"&&k.tone!=="silver"&&k.tone!=="eyeball"&&k.tone!=="dark") grainOn(x,W,H);
+    if(kind==="medama"){
+      x.beginPath(); x.arc(W*0.5,H*0.52,66,0,6.3); x.fillStyle="#f7f7f5"; x.fill();
+      x.lineWidth=7; x.strokeStyle="rgba(60,60,60,.55)"; x.stroke();
+      x.beginPath(); x.arc(W*0.5,H*0.52,38,0,6.3); x.fillStyle="#20262b"; x.fill();
+      x.beginPath(); x.arc(W*0.5+13,H*0.52-13,12,0,6.3); x.fillStyle="#fff"; x.fill();
+      return;
+    }
+    if(k.ribs){
+      x.strokeStyle="#FBF8F1"; x.lineCap="round";
+      for(var rb=0;rb<11;rb++){
+        var bx=26+rb*44;
+        x.lineWidth=13; x.beginPath();
+        x.moveTo(bx,H*0.46); x.bezierCurveTo(bx+16,H*0.66,bx+12,H*0.86,bx-10,H*0.99); x.stroke();
+        x.lineWidth=11; x.beginPath();
+        x.moveTo(bx,H*0.44); x.bezierCurveTo(bx+14,H*0.28,bx+10,H*0.14,bx-8,H*0.03); x.stroke();
+      }
+      for(var sg=0;sg<13;sg++){
+        var sx=20+sg*38;
+        x.fillStyle="#FFFDF6"; x.beginPath();
+        x.ellipse(sx,H*0.45,17,13,0,0,6.3); x.fill();
+        x.strokeStyle="rgba(180,172,155,.55)"; x.lineWidth=2; x.stroke();
+      }
+    }
+    if(noLabel) return;
+    var t=k.label||k.n;
+    /* 文字は「実物の大きさ」でまっすぐに彫る（細長い部位ではタテ書きにする） */
+    var K=100, ww=Math.max(0.25,wu||1), hh=Math.max(0.25,wt||1);
+    x.save();
+    x.setTransform((W/ww)/K,0,0,(H/hh)/K,W*0.5,H*0.5);
+    var vert=hh>ww*1.30, n=t.length, fh;
+    x.font="700 "+K+"px 'M PLUS Rounded 1c','Hiragino Maru Gothic ProN',sans-serif";
+    var w1=x.measureText(t).width/K;                 /* 高さ1のときの横幅（実寸） */
+    if(vert) fh=Math.min(0.72*ww, 0.86*hh/(n*1.04), 1.15);   /* タテ書き（1字ずつ積む） */
+    else     fh=Math.min(0.80*ww/Math.max(0.01,w1), 0.62*hh, 1.15);
+    x.font="700 "+Math.round(fh*K)+"px 'M PLUS Rounded 1c','Hiragino Maru Gothic ProN',sans-serif";
+    x.textAlign="center"; x.textBaseline="middle";
+    var dk=(k.tone==="dark")?"rgba(230,235,240,.5)":((k.tone==="skin"||k.tone==="silver")?"rgba(60,70,78,.42)":"rgba(96,18,28,.62)");
+    function two(ch,cx,cy){
+      x.fillStyle="rgba(255,255,255,.55)"; x.fillText(ch,cx,cy+fh*0.06*K);
+      x.fillStyle=dk; x.fillText(ch,cx,cy-fh*0.02*K);
+    }
+    var yo=(lsh||0)*hh*K;
+    if(vert){
+      var step=fh*1.04*K, y0=yo-(n-1)/2*step;
+      for(var ci=0;ci<n;ci++) two(t.charAt(ci),0,y0+ci*step);
+    } else two(t,0,yo);
+    x.restore();
+  });
+  var tx=new THREE.CanvasTexture(c); tx.anisotropy=4; return tx;
+}
+function mkMat(kind,ghost,wu,wt,lsh){
+  var k=KIND[kind];
+  if(ghost) return new THREE.MeshStandardMaterial({color:0xE8323F,transparent:true,opacity:.3,depthWrite:false,
+    roughness:.9,side:THREE.DoubleSide,emissive:0x4a0a10});
+  var o={color:0xffffff,roughness:.52,metalness:.05,side:THREE.DoubleSide,map:partTex(kind,wu,wt,false,lsh)};
+  if(k.tone==="skin"){ o.metalness=.42; o.roughness=.3; o.color=0xffffff; o.vertexColors=true; }
+  if(k.tone==="silver"){ o.metalness=.4; o.roughness=.32; }
+  if(k.tone==="dark"){ o.metalness=.3; o.roughness=.45; }
+  if(k.tone==="eyeball"){ o.metalness=.05; o.roughness=.22; }
+  return new THREE.MeshStandardMaterial(o);
+}
+/* 本マグロの体色：背は濃紺、側面は青銀、腹は真珠のような白 */
+var SKINC=[[0.00,0xFBFDFE],[0.20,0xF2F7F9],[0.34,0xDCE6EC],[0.45,0xBACAD6],
+           [0.54,0x93AEC4],[0.63,0x6389AC],[0.73,0x3C6288],[0.85,0x213F63],[1.00,0x11243E]]
+  .map(function(e){ return [e[0],new THREE.Color(e[1])]; });
+function skinRamp(k,c){
+  var i=0; while(i<SKINC.length-2&&SKINC[i+1][0]<k) i++;
+  var a=SKINC[i],b=SKINC[i+1],t=(k-a[0])/((b[0]-a[0])||1);
+  return c.copy(a[1]).lerp(b[1],t<0?0:(t>1?1:t));
+}
+function skinColors(geo){
+  var pos=geo.attributes.position,col=[],c=new THREE.Color();
+  var oe=geo.userData.outerEnd||pos.count;
+  for(var i=0;i<pos.count;i++){
+    var y=pos.getY(i),k=Math.max(0,Math.min(1,(y+1.78)/3.45));
+    if(i>=oe) c.setHex(0xB7C5CE);
+    else{
+      skinRamp(k,c);
+      if(k>0.44&&k<0.60){                 /* 側線のあたりを少しきらり */
+        var g=1-Math.abs(k-0.52)/0.08;
+        c.lerp(new THREE.Color(0xEAF2F6),g*0.18);
+      }
+    }
+    col.push(c.r,c.g,c.b);
+  }
+  geo.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
+}
+
+/* ---- 外れない骨組み ---- */
+var frameMat=new THREE.MeshStandardMaterial({color:0x1B3151,roughness:.46,metalness:.22,side:THREE.DoubleSide});
+var skinFrameMat=new THREE.MeshStandardMaterial({color:0xffffff,vertexColors:true,metalness:.42,roughness:.3,side:THREE.DoubleSide});
+var frameGroup=new THREE.Group(); root.add(frameGroup);
+FRAME.forEach(function(g){
+  var geo=g.hole?holeGeo(g):shellGeo(g);
+  if(g.skin){ skinColors(geo); frameGroup.add(new THREE.Mesh(geo,skinFrameMat)); }
+  else frameGroup.add(new THREE.Mesh(geo,frameMat));
+});
+/* ---- かしらAの大きな目（外れない） ---- */
+(function(){
+  var ec=P(0.105,-0.40,0.90);
+  var dir=P(0.105,-0.40,1.60).sub(ec).normalize();          /* 目の外向き */
+  var w=new THREE.Mesh(new THREE.SphereGeometry(0.40,24,18),
+    new THREE.MeshStandardMaterial({color:0xFFFFFF,roughness:.3,metalness:.02}));
+  w.position.copy(ec); frameGroup.add(w);
+  var b=new THREE.Mesh(new THREE.SphereGeometry(0.235,20,16),
+    new THREE.MeshStandardMaterial({color:0x14181C,roughness:.25,metalness:.05}));
+  b.position.copy(ec).addScaledVector(dir,0.285); frameGroup.add(b);
+  var h=new THREE.Mesh(new THREE.SphereGeometry(0.078,12,10),
+    new THREE.MeshStandardMaterial({color:0xffffff,emissive:0x777777,roughness:.2}));
+  h.position.copy(ec).addScaledVector(dir,0.44); h.position.y+=0.11; h.position.x-=0.07;
+  frameGroup.add(h);
+})();
+/* ---- ひれ ---- */
+function finMesh(pts,depth,x,y,z,mat){
+  var sh=new THREE.Shape(); sh.moveTo(pts[0][0],pts[0][1]);
+  for(var i=1;i<pts.length;i++) sh.lineTo(pts[i][0],pts[i][1]);
+  var geo=new THREE.ExtrudeGeometry(sh,{depth:depth,bevelEnabled:true,bevelSize:.03,bevelThickness:.03,bevelSegments:1});
+  geo.translate(0,0,-depth/2);
+  var m=new THREE.Mesh(geo,mat||frameMat); m.position.set(x||0,y||0,z||0); return m;
+}
+frameGroup.add(finMesh([[-2.0,1.7],[-1.55,3.15],[-0.9,3.3],[-0.2,1.9],[-0.8,2.05]],0.15));
+frameGroup.add(finMesh([[4.1,0.15],[6.2,3.0],[5.4,0.9],[6.3,-2.7],[4.1,-0.2]],0.17));
+/* ---- 胴体の外がわのひれ（根もとは背・腹のふちの中にかくれる＝パーツに当たらない） ---- */
+var finYMat=new THREE.MeshStandardMaterial({color:0xE2C03E,roughness:.42,metalness:.22,side:THREE.DoubleSide});
+function UX(u){ return (u-0.5)*L; }
+function TY(u,k){ var q=prof(u); return q.yc+q.ry*(k===undefined?1.015:k); }
+function BY(u,k){ var q=prof(u); return q.yc-q.ry*(k===undefined?1.015:k); }
+/* 第二背びれ */
+frameGroup.add(finMesh([[UX(0.552),TY(0.552)],[UX(0.580),TY(0.580)+0.62],
+  [UX(0.616),TY(0.616)+0.26],[UX(0.655),TY(0.655)]],0.10,0,0,0,finYMat));
+/* しりびれ */
+frameGroup.add(finMesh([[UX(0.618),BY(0.618)],[UX(0.646),BY(0.646)-0.60],
+  [UX(0.682),BY(0.682)-0.25],[UX(0.718),BY(0.718)]],0.10,0,0,0,finYMat));
+/* 腹びれ */
+frameGroup.add(finMesh([[UX(0.338),BY(0.338)],[UX(0.366),BY(0.366)-0.60],
+  [UX(0.396),BY(0.396)-0.22],[UX(0.418),BY(0.418)]],0.09,0,0,0,frameMat));
+/* 小離鰭（黄色い三角のならび） */
+for(var fi=0;fi<5;fi++){
+  var fu0=0.700+fi*0.041, fu1=fu0+0.030;
+  frameGroup.add(finMesh([[UX(fu0),TY(fu0)],[UX(fu0)+0.09,TY(fu0)+0.26],[UX(fu1),TY(fu1)]],
+    0.075,0,0,0,finYMat));
+  frameGroup.add(finMesh([[UX(fu0),BY(fu0)],[UX(fu0)+0.09,BY(fu0)-0.24],[UX(fu1),BY(fu1)]],
+    0.075,0,0,0,finYMat));
+}
+var pectL=finMesh([[0,0],[1.7,-0.65],[2.3,-1.3],[0.6,-0.6]],0.1,-2.1,-0.3,-1.53);
+pectL.rotation.y=0.5; pectL.rotation.z=0.15; frameGroup.add(pectL);
+var pectR=finMesh([[0,0],[1.7,-0.65],[2.3,-1.3],[0.6,-0.6]],0.1,-2.1,-0.3,1.53);
+pectR.rotation.y=-0.5; pectR.rotation.z=0.15; root.add(pectR);
+
+/* ---- パーツ ---- */
+var byId={},meshes={},ghosts={};
+PARTS.forEach(function(p){
+  byId[p.id]=p;
+  var geo=p.g.blob?blobGeo(p.g):(p.g.slab?slabGeo(p.g):shellGeo(p.g));
+  geo.computeBoundingBox(); var home=new THREE.Vector3(); geo.boundingBox.getCenter(home);
+  geo.translate(-home.x,-home.y,-home.z);
+  if(KIND[p.kind].tone==="skin") skinColors(geo);
+  var wu=1,wt=1;
+  if(!p.g.blob){
+    var um=(p.g.u0+p.g.u1)/2, tm=(p.g.t0+p.g.t1)/2, s1=p.g.s1;
+    wu=P(p.g.u0,tm,s1).distanceTo(P(p.g.u1,tm,s1));
+    wt=P(um,p.g.t0,s1).distanceTo(P(um,p.g.t1,s1));
+    if(p.g.lwu) wu*=p.g.lwu;
+  }
+  var mat=mkMat(p.kind,false,wu,wt,p.g.lsh);
+  var m=new THREE.Mesh(geo,mat); m.position.copy(home); m.userData={id:p.id};
+  p.texLabel=mat.map; p.texPlain=partTex(p.kind,wu,wt,true,p.g.lsh);
+  if(p.kind==="medama"){
+    var pup=new THREE.Mesh(new THREE.SphereGeometry(0.185,20,16),
+      new THREE.MeshStandardMaterial({color:0x14181C,roughness:.25,metalness:.05}));
+    var oc=P(p.g.u,p.g.t,p.g.s+0.22).sub(home); pup.position.copy(oc); m.add(pup);
+    var hl=new THREE.Mesh(new THREE.SphereGeometry(0.062,12,10),
+      new THREE.MeshStandardMaterial({color:0xffffff,roughness:.2,emissive:0x666666}));
+    hl.position.copy(oc).multiplyScalar(1.22); hl.position.y+=0.09; m.add(hl);
+  }
+  root.add(m); meshes[p.id]=m;
+  var gm=new THREE.Mesh(geo,mkMat(p.kind,true)); gm.position.copy(home); gm.visible=false;
+  root.add(gm); ghosts[p.id]=gm;
+  var dir;
+  if(p.pull) dir=new THREE.Vector3(p.pull[0],p.pull[1],p.pull[2]).normalize();
+  else if(p.g.slab) dir=new THREE.Vector3(0,(home.y-prof(0.5).yc)*0.30,1).normalize();
+  else { dir=new THREE.Vector3(0,home.y-prof(0.5).yc,home.z); if(dir.length()<0.3) dir.set(0,0,1); dir.normalize(); }
+  p.home=home.clone(); p.dir=dir; p.mesh=m; p.state="home";
+  geo.computeBoundingBox();
+  var ex=new THREE.Vector3(); geo.boundingBox.getSize(ex);
+  var ax=(ex.x<=ex.y&&ex.x<=ex.z)?new THREE.Vector3(1,0,0):((ex.y<=ex.z)?new THREE.Vector3(0,1,0):new THREE.Vector3(0,0,1));
+  p.flatQ=new THREE.Quaternion().setFromUnitVectors(ax,new THREE.Vector3(0,1,0));
+});
+var FISH_CENTER=new THREE.Vector3(0.3,0.15,0);
+
+/* ---- サムネイル ---- */
+var THUMB={};
+function buildThumbs(){
+  var sc=new THREE.Scene();
+  sc.add(new THREE.AmbientLight(0xffffff,0.66));
+  var l1=new THREE.DirectionalLight(0xffffff,0.8); l1.position.set(4,8,6); sc.add(l1);
+  var l2=new THREE.DirectionalLight(0xffffff,0.3); l2.position.set(-5,2,-4); sc.add(l2);
+  var cam=new THREE.OrthographicCamera(-1,1,1,-1,0.1,100);
+  var W=220,H=170,old=new THREE.Vector2(); renderer.getSize(old); renderer.setSize(W,H,false);
+  PARTS.forEach(function(p){
+    var m=new THREE.Mesh(p.mesh.geometry,p.mesh.material);
+    m.quaternion.copy(p.flatQ); m.updateMatrixWorld(); sc.add(m);
+    var bb=new THREE.Box3().setFromObject(m),sz=new THREE.Vector3(); bb.getSize(sz);
+    var cx=new THREE.Vector3(); bb.getCenter(cx);
+    var r=Math.max(sz.x,sz.z)*0.62+0.3;
+    cam.left=-r*(W/H)*0.85; cam.right=r*(W/H)*0.85; cam.top=r*0.95; cam.bottom=-r*0.95;
+    cam.position.set(cx.x+1.6,cx.y+6,cx.z+2.6); cam.lookAt(cx); cam.updateProjectionMatrix();
+    renderer.render(sc,cam);
+    THUMB[p.id]=renderer.domElement.toDataURL("image/png");
+    sc.remove(m);
+  });
+  renderer.setSize(old.x,old.y,false);
+}
+
+/* ================= 音 ================= */
+var ac=null;
+function actx(){ if(ac===null){ try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){ac=false;} } return ac; }
+function sfx(kind){
+  var c=actx(); if(!c) return; if(c.state==="suspended") c.resume();
+  var t=c.currentTime,g=c.createGain(); g.connect(c.destination);
+  if(kind==="snap"){
+    var o=c.createOscillator(); o.type="triangle"; o.connect(g);
+    o.frequency.setValueAtTime(1180,t); o.frequency.exponentialRampToValueAtTime(660,t+0.07);
+    g.gain.setValueAtTime(.001,t); g.gain.exponentialRampToValueAtTime(.3,t+0.008);
+    g.gain.exponentialRampToValueAtTime(.001,t+0.12); o.start(t); o.stop(t+0.14);
+  }else if(kind==="cut"){
+    var len=Math.floor(c.sampleRate*0.14),buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);
+    for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.4);
+    var src=c.createBufferSource(); src.buffer=buf;
+    var f=c.createBiquadFilter(); f.type="bandpass"; f.frequency.value=2400; f.Q.value=1.2;
+    src.connect(f); f.connect(g); g.gain.setValueAtTime(.26,t); src.start(t);
+  }else if(kind==="ng"){
+    var o2=c.createOscillator(); o2.type="square"; o2.connect(g);
+    o2.frequency.setValueAtTime(180,t); o2.frequency.setValueAtTime(130,t+0.08);
+    g.gain.setValueAtTime(.13,t); g.gain.exponentialRampToValueAtTime(.001,t+0.18);
+    o2.start(t); o2.stop(t+0.2);
+  }else{
+    var o3=c.createOscillator(); o3.type="triangle"; o3.connect(g);
+    g.gain.setValueAtTime(.001,t);
+    [660,880,1046,1320].forEach(function(hz,k){ o3.frequency.setValueAtTime(hz,t+k*0.11);
+      g.gain.setValueAtTime(.24,t+k*0.11); g.gain.exponentialRampToValueAtTime(.02,t+k*0.11+0.1); });
+    o3.start(t); o3.stop(t+0.5);
+  }
+}
+/* ================= 状態 ================= */
+var state={screen:"title",mode:"kaitai",removed:[],placed:[],order:[],drag:null,
+  finished:false,hintId:null,t0:0,acc:0,started:false,tick:null,miss:0,hints:0,hintUntil:0,spin:true,hideLabel:false,
+  cam:{yaw:-0.55,pitch:0.22,zoom:1,tYaw:-0.55,tPitch:0.22,tZoom:1,
+       target:FISH_CENTER.clone(),tTarget:FISH_CENTER.clone()}};
+var LNAME={0:"皮",1:"頭の部位",2:"外の身A",3:"あかみA",4:"なかおち",5:"あかみB",6:"中の身B・内臓"};
+function fmt(s){var m=Math.floor(s/60),x=(s%60).toFixed(1);return m+":"+(x<10?"0":"")+x;}
+
+/* ================= アニメーション ================= */
+var tw=[];
+function ease(k){return 1-Math.pow(1-k,3);}
+function anim(o){o.start=performance.now();o.p0=o.mesh.position.clone();o.s0=o.mesh.scale.x;tw.push(o);return o;}
+function stepTw(now){
+  for(var i=tw.length-1;i>=0;i--){
+    var a=tw[i],k=Math.min(1,(now-a.start)/a.dur),e=ease(k);
+    a.mesh.position.lerpVectors(a.p0,a.p1,e);
+    if(a.s1!=null){var s=a.s0+(a.s1-a.s0)*e;a.mesh.scale.set(s,s,s);}
+    if(a.fade!=null) a.mesh.material.opacity=1-e;
+    if(k>=1){tw.splice(i,1); if(a.end)a.end();}
+  }
+}
+
+/* ================= 表示の更新 ================= */
+function layerNow(){
+  for(var l=6;l>=0;l--) if(PARTS.some(function(p){return p.layer===l&&state.placed.indexOf(p.id)<0;})) return l;
+  return -1;
+}
+function refresh(){
+  var kaitai=state.mode==="kaitai";
+  PARTS.forEach(function(p){
+    var m=p.mesh,g=ghosts[p.id];
+    if(kaitai){ m.visible=(p.state==="home"); g.visible=false;
+      if(m.material.emissive)
+        m.material.emissive.setHex((performance.now()<state.hintUntil&&state.hintId===p.id)?0x7a5200:0x000000);
+    }
+    else{
+      var placed=(p.state==="home");
+      m.visible=placed||p.state==="fly";
+      var hintOn=(performance.now()<state.hintUntil);
+      var act=(state.hintId===p.id);
+      if(!placed&&hintOn&&act){
+        g.visible=true; g.material.color.setHex(0xFFC02E);
+        g.material.emissive.setHex(0x6a4500); g.material.opacity=0.62;
+      }else if(!placed&&(p.layer>=5||p.kind==="kama"||p.kind==="kamatoro")){
+                                                  /* 中の身・内臓・カマまわりは「はまる場所」がうっすら見える */
+        g.visible=true; g.material.color.setHex(0x5B6A74);
+        g.material.emissive.setHex(0x000000); g.material.opacity=0.16;
+      }else g.visible=false;
+    }
+  });
+  pectR.visible=(byId["dotai"].state==="home");
+  layoutBottom();
+  $("#layerPill").textContent=kaitai?(performance.now()<state.hintUntil?"ヒント：光った所をタップ":"手前の皮からはずせます"):(performance.now()<state.hintUntil?"ヒント：光った所へ":"形を見てはめこもう（置いたパーツはタップで外せます）");
+}
+function updateHud(){
+  var n=state.mode==="kaitai"?state.removed.length:state.placed.length;
+  $("#countPill").textContent=n+"/"+TOTAL;
+  $("#barFill").style.width=(n/TOTAL*100)+"%";
+  $("#vbLeftN").textContent=TOTAL-n;
+  $("#hdrTime").hidden=!(state.screen==="play"&&state.mode==="kumitate");
+  $("#vbMiss").hidden=!(state.screen==="play"&&state.mode==="kumitate");
+  $("#vbMissN").textContent=state.miss;
+}
+function showNow(id){
+  var b=$("#nowBar");
+  if(!id){ b.className="nowbar idle";
+    b.innerHTML='<span class="tx"><span class="nm">'+
+      (state.mode==="kaitai"?"パーツをタップしてね":"下のパーツをマグロへドラッグ")+
+      '</span><span class="ds">'+(state.mode==="kaitai"
+        ?"ドラッグで回転、2本指で拡大。"
+        :"わからなくなったら 💡ヒント。")+'</span></span>';
+    return; }
+  var p=byId[id],k=KIND[p.kind];
+  b.className="nowbar";
+  b.innerHTML='<img src="'+(THUMB[id]||"")+'" alt=""><span class="tx"><span class="nm">'+k.n+
+    (k.g!=="その他"?'<span style="font-size:11.5px;font-weight:700;color:var(--ink-2)">　'+k.g+'</span>':"")+
+    (k.rare?'<span style="font-size:10px;font-weight:800;color:var(--gold);border:1.5px solid var(--gold);border-radius:99px;padding:0 6px;margin-left:6px">希少</span>':"")+
+    '</span><span class="ds">'+k.d+'</span></span>';
+}
+function renderStrip(){
+  var kaitai=state.mode==="kaitai",list;
+  if(kaitai) list=state.order.slice();
+  else list=state.order.slice();
+  strip.textContent="";
+  list.forEach(function(id){
+    var p=byId[id],k=KIND[p.kind];
+    var b=document.createElement("button");
+    b.className="pcard2"+(k.rare?" rare":"");
+    b.setAttribute("data-id",id);
+    b.innerHTML='<img src="'+(THUMB[id]||"")+'" alt=""><b>'+k.n+(p.side||'')+'</b>';
+    strip.appendChild(b);
+  });
+  $("#stripEmpty").hidden=list.length>0;
+  $("#stripCount").textContent=list.length+" 個";
+}
+/* ================= 記録 ================= */
+/* ===== プレイヤーのなまえ ===== */
+function esc(t){ return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function playerName(){ try{ return localStorage.getItem("maguro3d3-name")||""; }catch(e){ return ""; } }
+function setPlayerName(n){ try{ localStorage.setItem("maguro3d3-name",n); }catch(e){}
+  $("#whoName").textContent=n||"ゲスト"; }
+function loadRecs(){try{return JSON.parse(localStorage.getItem("maguro3d3-rec"))||{};}catch(e){return{};}}
+function saveRec(m,sec,miss){try{var r=loadRecs();r[m]=r[m]||[];var d=new Date(),id=Date.now();
+  r[m].push({sec:+sec.toFixed(1),miss:miss,at:(d.getMonth()+1)+"/"+d.getDate(),who:playerName(),id:id});
+  r[m].sort(function(a,b){return a.sec-b.sec;});r[m]=r[m].slice(0,8);
+  localStorage.setItem("maguro3d3-rec",JSON.stringify(r));
+  state.recId=id; return r[m].length>0&&r[m][0].id===id;}catch(e){return false;}}
+function renderRec(){
+  var r=loadRecs(),l=r[state.mode]||[];
+  var h='<h4>'+(state.mode==="kaitai"?"かいたいタイム ベスト":"組み立てタイム ベスト")+'</h4>';
+  if(!l.length) h+='<p class="none">まだ記録がありません。</p>';
+  else{h+='<ol class="reclist">';
+    l.slice(0,5).forEach(function(e){
+      h+='<li'+(e.id&&e.id===state.recId?' class="now"':'')+'>'+
+         '<span class="who">'+esc(e.who||"ゲスト")+'</span>'+
+         '<span class="tm">'+fmt(e.sec)+'</span>'+
+         '<span class="ms">'+(e.miss?'ミス'+e.miss:'ミス0')+'</span></li>';
+    });
+    h+='</ol>';}
+  $("#doneRec").innerHTML=h;
+}
+/* ================= 進行 ================= */
+function elapsed(){ return (state.acc+(state.t0?performance.now()-state.t0:0))/1000; }
+function tickOn(){ if(state.tick)return;
+  state.tick=setInterval(function(){$("#hdrTime").textContent="⏱ "+fmt(elapsed());},100); }
+function startClock(){ if(state.mode!=="kumitate")return; if(state.t0)return; state.started=true; state.t0=performance.now(); tickOn(); }
+function pauseClock(){ if(state.t0){ state.acc+=performance.now()-state.t0; state.t0=0; }
+  if(state.tick){clearInterval(state.tick);state.tick=null;} $("#hdrTime").textContent="⏱ "+fmt(elapsed()); }
+function resumeClock(){ if(state.started&&!state.t0){ state.t0=performance.now(); tickOn(); } }
+function stopClock(){ pauseClock(); state.started=false; state.acc=0; }
+function removePart(id){
+  var p=byId[id]; if(p.state!=="home") return;
+  startClock(); p.state="fly"; state.removed.push(id); state.order.push(id);
+  sfx('cut');
+  p.mesh.material.transparent=true;
+  anim({mesh:p.mesh,p1:p.home.clone().addScaledVector(p.dir,3.6),s1:0.8,fade:1,dur:520,
+    end:function(){ p.state="off"; p.mesh.visible=false; p.mesh.material.opacity=1; p.mesh.material.transparent=false;
+      p.mesh.position.copy(p.home); p.mesh.scale.set(1,1,1); }});
+  showNow(id); updateHud(); refresh(); renderStrip();
+  var c=strip.querySelector('[data-id="'+id+'"]'); if(c) c.classList.add("in");
+  if(state.removed.length===TOTAL) setTimeout(finish,900);
+}
+function flash(mesh){
+  var m=mesh.material; if(!m.emissive) return;
+  m.emissive.setHex(0xffffff); m.emissiveIntensity=1;
+  var st=performance.now();
+  (function fade(){
+    var k=Math.min(1,(performance.now()-st)/420);
+    m.emissive.setScalar(0.9*(1-k));
+    if(k<1) requestAnimationFrame(fade); else m.emissive.setHex(0x000000);
+  })();
+}
+function unplacePart(id){
+  var p=byId[id]; if(p.state!=="home") return;
+  p.state="off";
+  var i=state.placed.indexOf(id); if(i>=0) state.placed.splice(i,1);
+  if(state.order.indexOf(id)<0) state.order.unshift(id);
+  sfx("cut");
+  p.mesh.material.transparent=true;
+  anim({mesh:p.mesh,p1:p.home.clone().addScaledVector(p.dir,3.0),s1:0.85,fade:1,dur:380,
+    end:function(){ p.mesh.visible=false; p.mesh.material.opacity=1; p.mesh.material.transparent=false;
+      p.mesh.position.copy(p.home); p.mesh.scale.set(1,1,1); }});
+  showNow(id); updateHud(); refresh(); renderStrip();
+}
+function placePart(id){
+  var p=byId[id]; p.state="home"; state.placed.push(id);
+  if(state.order.indexOf(id)>=0) state.order.splice(state.order.indexOf(id),1);
+  p.mesh.visible=true; p.mesh.scale.set(1,1,1);
+  p.mesh.position.copy(p.home).addScaledVector(p.dir,2.4);
+  anim({mesh:p.mesh,p1:p.home.clone(),dur:300});
+  sfx("snap"); flash(p.mesh);
+  showNow(id); updateHud(); refresh(); renderStrip();
+  if(state.placed.length===TOTAL) setTimeout(finish,700);
+}
+function rankOf(sec,miss,mode){
+  var v=(mode==="kaitai")?sec:sec+miss*5;
+  if(v<=75)  return {n:3,t:"まぐろ名人！"};
+  if(v<=165) return {n:2,t:"いい腕まえ！"};
+  return {n:1,t:"よくできました！"};
+}
+function confetti(on){
+  var box=$("#confetti"); if(!box) return; box.innerHTML="";
+  if(!on) return;
+  var cols=["#E0353F","#F2A23C","#2E8AEC","#3DBE6B","#C9922B","#E86A8E","#FFFFFF"];
+  for(var i=0;i<46;i++){
+    var s=document.createElement("i");
+    s.style.left=(Math.random()*100).toFixed(1)+"%";
+    s.style.background=cols[i%cols.length];
+    s.style.animationDelay=(Math.random()*2.2).toFixed(2)+"s";
+    s.style.animationDuration=(2.4+Math.random()*2.2).toFixed(2)+"s";
+    box.appendChild(s);
+  }
+}
+/* ===== 完成画面を自由に泳ぐ、ちいさなマグロ ===== */
+var FISH_SVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 42">'
+ +'<path d="M19 21 L3 5 L10 21 L3 37 Z" fill="#26456A"/>'
+ +'<path d="M36 9 L45 2 L49 11 Z" fill="#26456A"/>'
+ +'<path d="M34 30 L40 40 L48 30 Z" fill="#26456A"/>'
+ +'<ellipse cx="39" cy="21" rx="25" ry="13.5" fill="#3E6E9B"/>'
+ +'<ellipse cx="40" cy="26.5" rx="22" ry="7.5" fill="#EDF4F8"/>'
+ +'<path d="M36 24 L30 32 L42 28 Z" fill="#2E5580" opacity=".92"/>'
+ +'<circle cx="53" cy="18" r="5" fill="#fff"/><circle cx="54.4" cy="18" r="2.8" fill="#18202A"/>'
+ +'<circle cx="55.5" cy="16.7" r="1" fill="#fff"/>'
+ +'<ellipse cx="48" cy="25" rx="3.6" ry="2.3" fill="#F2929F" opacity=".8"/>'
+ +'<path d="M63 22 q-3.5 2.4 -6 .4" stroke="#18202A" stroke-width="1.4" fill="none" stroke-linecap="round"/>'
+ +'</svg>';
+/* キハダマグロ（黄色いひれと側線） */
+var FISH2_SVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 42">'
+ +'<path d="M19 21 L3 5 L10 21 L3 37 Z" fill="#E9C33C"/>'
+ +'<path d="M33 12 Q29 2 22 1 Q31 6 32 13 Z" fill="#F4D24B"/>'
+ +'<path d="M33 30 Q29 40 22 41 Q31 36 32 29 Z" fill="#F4D24B"/>'
+ +'<path d="M36 9 L45 2 L49 11 Z" fill="#31618C"/>'
+ +'<ellipse cx="39" cy="21" rx="25" ry="13.5" fill="#4C82AB"/>'
+ +'<ellipse cx="40" cy="26.5" rx="22" ry="7.5" fill="#F7F3DF"/>'
+ +'<path d="M17 19.5 Q36 16.5 61 19 L61 22.4 Q36 20.4 17 23 Z" fill="#F0CB46" opacity=".9"/>'
+ +'<path d="M22 11 l3 -3 l2 3 Z M27 9.5 l3 -3 l2 3 Z" fill="#F0CB46"/>'
+ +'<path d="M22 31 l3 3 l2 -3 Z M27 32.5 l3 3 l2 -3 Z" fill="#F0CB46"/>'
+ +'<path d="M36 24 L30 32 L42 28 Z" fill="#E9C33C" opacity=".95"/>'
+ +'<circle cx="53" cy="18" r="5" fill="#fff"/><circle cx="54.4" cy="18" r="2.8" fill="#18202A"/>'
+ +'<circle cx="55.5" cy="16.7" r="1" fill="#fff"/>'
+ +'<ellipse cx="48" cy="25" rx="3.6" ry="2.3" fill="#F2929F" opacity=".8"/>'
+ +'<path d="M63 22 q-3.5 2.4 -6 .4" stroke="#18202A" stroke-width="1.4" fill="none" stroke-linecap="round"/>'
+ +'</svg>';
+var swimRaf=null, swimBub=0;
+function swimStart(on){
+  var box=$("#swim"); if(!box) return;
+  if(swimRaf){ cancelAnimationFrame(swimRaf); swimRaf=null; }
+  box.innerHTML=""; if(!on) return;
+  var rr=box.getBoundingClientRect(), W=rr.width||360, H=rr.height||560, FW=56, FH=35;
+  var fs=[];
+  for(var i=0;i<4;i++){
+    var el=document.createElement("div"); el.className="fishy";
+    el.innerHTML=(i===3)?FISH2_SVG:FISH_SVG;        /* 1ぴきは キハダマグロ */
+    box.appendChild(el);
+    fs.push({el:el,x:Math.random()*Math.max(10,W-FW),y:26+Math.random()*Math.max(10,H*0.55),
+      vx:(Math.random()<0.5?-1:1)*(1.6+Math.random()*0.9),
+      vy:(Math.random()<0.5?-1:1)*(0.5+Math.random()*0.6),
+      ph:Math.random()*6.3,sc:(i===3?0.98:0.78+Math.random()*0.44)});
+  }
+  var last=performance.now();
+  (function step(now){
+    var dt=Math.min(48,now-last); last=now;
+    var r2=box.getBoundingClientRect(), w=r2.width, h=r2.height;
+    fs.forEach(function(f){
+      var fw=FW*f.sc, fh=FH*f.sc;
+      f.x+=f.vx*dt*0.055; f.y+=f.vy*dt*0.055; f.ph+=dt*0.005;
+      if(f.x<0){f.x=0;f.vx=Math.abs(f.vx);}
+      if(f.x>w-fw){f.x=w-fw;f.vx=-Math.abs(f.vx);}
+      if(f.y<0){f.y=0;f.vy=Math.abs(f.vy);}
+      if(f.y>h-fh){f.y=h-fh;f.vy=-Math.abs(f.vy);}
+      var bob=Math.sin(f.ph)*3.5, tilt=Math.sin(f.ph)*4;
+      f.el.style.transform="translate("+f.x.toFixed(1)+"px,"+(f.y+bob).toFixed(1)+"px) "
+        +"scale("+(f.vx<0?-f.sc:f.sc)+","+f.sc+") rotate("+tilt.toFixed(1)+"deg)";
+    });
+    if(now-swimBub>700){                 /* ときどき あぶく */
+      swimBub=now;
+      var f0=fs[Math.floor(Math.random()*fs.length)];
+      var b=document.createElement("span"); b.className="bub";
+      var d=5+Math.random()*7;
+      b.style.width=b.style.height=d+"px";
+      b.style.left=(f0.x+(f0.vx<0?2:48))+"px"; b.style.top=(f0.y+8)+"px";
+      b.style.animationDuration=(1.6+Math.random()*1.2)+"s";
+      box.appendChild(b); setTimeout(function(){ if(b.parentNode) b.parentNode.removeChild(b); },3000);
+    }
+    swimRaf=requestAnimationFrame(step);
+  })(last);
+}
+function finish(){
+  if(state.mode==="kaitai"){          /* 解体はタイムも結果画面もなし。つぎの行き先を出すだけ */
+    state.finished=true; sfx("done");
+    $("#vbLeft").hidden=true; $("#vbHint").hidden=true; $("#vbMiss").hidden=true;
+    $("#doneNav").hidden=false;
+    return;
+  }
+  var sec=elapsed();                 /* ← タイマーを止める前に読む */
+  stopClock();
+  var best=saveRec(state.mode,sec,state.miss);
+  var rk=rankOf(sec,state.miss,state.mode);
+  var nm=playerName();
+  $("#doneHello").textContent=nm?nm+"さん、おつかれさま！":"おつかれさま！";
+  $("#doneStars").innerHTML="<i>★</i><i"+(rk.n<2?' class="off"':"")+">★</i><i"+(rk.n<3?' class="off"':"")+">★</i>";
+  $("#doneRank").textContent=rk.t;
+  $("#doneBest").hidden=!best;
+  $("#doneTtl").textContent=state.mode==="kaitai"?"解体完了！":"完成！";
+  $("#doneTime").textContent=fmt(sec);
+  $("#doneMeta").textContent=(state.mode==="kaitai"
+    ?TOTAL+"パーツ ぜんぶはずせました！"
+    :"ミス "+state.miss+"かい／ヒント "+state.hints+"かい。");
+  $("#doneOther").textContent=state.mode==="kaitai"?"組み立てに挑戦":"もう一度 解体する";
+  renderRec(); sfx("done");
+  state.finished=true;
+  $("#vbHint").hidden=true; $("#vbMiss").hidden=true;
+  $("#doneBanner").innerHTML="✨ 完成！　回してながめられます<br>タップで結果へ";
+  $("#doneBanner").hidden=false;
+}
+function showDone(){ state.finished=false; $("#doneBanner").hidden=true; $("#doneNav").hidden=true;
+  if(state.mode==="kaitai"){ startMode("kumitate"); return; }
+  go("done"); }
+/* ================= カメラ（カーソル起点） ================= */
+var ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),ptrs=new Map();
+var dragging=false,moved=0,lastX=0,lastY=0,pinch0=0;
+function ndcOf(cx,cy){var r=canvas.getBoundingClientRect();
+  ndc.set(((cx-r.left)/r.width)*2-1,-((cy-r.top)/r.height)*2+1);return ndc;}
+function allHit(){
+  var out=[];
+  PARTS.forEach(function(p){ if(p.mesh.visible) out.push(p.mesh); });
+  frameGroup.children.forEach(function(m){ out.push(m); });
+  return out;
+}
+function worldAt(cx,cy){
+  ray.setFromCamera(ndcOf(cx,cy),camera);
+  var h=ray.intersectObjects(allHit(),false);
+  return h.length?h[0].point.clone():null;
+}
+function pivotAt(cx,cy){
+  var w=worldAt(cx,cy);
+  if(w) state.cam.tTarget.copy(w);
+}
+function fitDist(){
+  var vf=camera.fov*Math.PI/180,hh=Math.atan(Math.tan(vf/2)*camera.aspect);
+  return Math.max(7.6/Math.tan(hh),5.0/Math.tan(vf/2));
+}
+function updateCam(){
+  var c=state.cam;
+  if(state.spin&&!dragging&&!state.drag) c.tYaw+=0.0028;
+  c.yaw+=(c.tYaw-c.yaw)*0.15; c.pitch+=(c.tPitch-c.pitch)*0.15; c.zoom+=(c.tZoom-c.zoom)*0.14;
+  c.target.lerp(c.tTarget,0.16);
+  var d=fitDist()*c.zoom;
+  camera.position.set(c.target.x+d*Math.cos(c.pitch)*Math.sin(c.yaw),
+                      c.target.y+d*Math.sin(c.pitch),
+                      c.target.z+d*Math.cos(c.pitch)*Math.cos(c.yaw));
+  camera.lookAt(c.target);
+}
+function resetCam(){var c=state.cam;c.tYaw=-0.55;c.tPitch=0.22;c.tZoom=1;c.tTarget.copy(FISH_CENTER);}
+/* ================= 入力 ================= */
+canvas.addEventListener("pointerdown",function(ev){
+  try{canvas.setPointerCapture(ev.pointerId);}catch(e){}
+  ptrs.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+  if(ptrs.size===2){var a=Array.from(ptrs.values());pinch0=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);return;}
+  dragging=true; moved=0; lastX=ev.clientX; lastY=ev.clientY;
+  canvas.classList.add("grabbing");
+});
+canvas.addEventListener("pointermove",function(ev){
+  if(ptrs.has(ev.pointerId)) ptrs.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+  if(ptrs.size===2){
+    var a=Array.from(ptrs.values()),d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+    if(pinch0>0){
+      var mx=(a[0].x+a[1].x)/2,my=(a[0].y+a[1].y)/2;
+      if(d>pinch0) pivotAt(mx,my);
+      state.cam.tZoom=Math.max(0.28,Math.min(2.2,state.cam.tZoom*(pinch0/d)));
+    }
+    pinch0=d; moved=99; return;
+  }
+  if(dragging){
+    var dx=ev.clientX-lastX,dy=ev.clientY-lastY;
+    moved+=Math.abs(dx)+Math.abs(dy); lastX=ev.clientX; lastY=ev.clientY;
+    if(moved>4){
+      if(state.spin) state.spin=false;
+      state.cam.tYaw-=dx*0.007;
+      state.cam.tPitch=Math.max(-1.3,Math.min(1.3,state.cam.tPitch+dy*0.006));
+    }
+  }
+});
+function upCanvas(ev){
+  ptrs.delete(ev.pointerId); if(ptrs.size<2) pinch0=0;
+  var wasDrag=moved>4; dragging=false; canvas.classList.remove("grabbing");
+  /* パーツをつまんでいる間／置いた直後は、置いたパーツを外さない */
+  if(state.drag||performance.now()-(state.dropAt||0)<420) return;
+  if(!wasDrag&&state.screen==="play"){
+    if(state.finished){ if(state.mode!=="kaitai") showDone(); return; }     /* 完成後はどこをタップしても結果へ */
+    ray.setFromCamera(ndcOf(ev.clientX,ev.clientY),camera);
+    var list=[]; PARTS.forEach(function(p){ if(p.state==="home") list.push(p.mesh); });
+    var h=ray.intersectObjects(list,false);
+    if(h.length){ if(state.mode==="kaitai") removePart(h[0].object.userData.id);
+                  else unplacePart(h[0].object.userData.id); }
+    else if(state.mode==="kaitai"){
+      var hf=ray.intersectObject(frameGroup,true);
+      if(hf.length){ sfx("ng"); tellFixed(); }
+    }
+  }
+}
+canvas.addEventListener("pointerup",upCanvas);
+canvas.addEventListener("pointercancel",function(ev){ptrs.delete(ev.pointerId);dragging=false;canvas.classList.remove("grabbing");});
+canvas.addEventListener("wheel",function(ev){
+  ev.preventDefault();
+  if(ev.deltaY<0) pivotAt(ev.clientX,ev.clientY);
+  state.cam.tZoom=Math.max(0.28,Math.min(2.2,state.cam.tZoom*(1+ev.deltaY*0.0013)));
+},{passive:false});
+/* ---- 下のパーツ置き場からドラッグ ---- */
+strip.addEventListener("pointerdown",function(ev){
+  var card=ev.target.closest(".pcard2"); if(!card) return;
+  var id=card.getAttribute("data-id");
+  showNow(id);
+  if(state.mode!=="kumitate") return;
+  ev.preventDefault();
+  var f=document.createElement("img");
+  f.className="floatpiece"; f.src=THUMB[id]||"";
+  document.body.appendChild(f);
+  state.drag={id:id,el:f,card:card,ok:false};
+  card.classList.add("held");
+  f.style.left=ev.clientX+"px"; f.style.top=ev.clientY+"px";
+  try{card.setPointerCapture(ev.pointerId);}catch(e){}
+  refresh();
+});
+function nearHome(cx,cy,p){
+  var r=canvas.getBoundingClientRect();
+  if(cx<r.left||cx>r.right||cy<r.top||cy>r.bottom) return false;
+  ray.setFromCamera(ndcOf(cx,cy),camera);
+  return ray.ray.distanceToPoint(p.home)<1.35;
+}
+document.addEventListener("pointermove",function(ev){
+  var d=state.drag; if(!d) return;
+  d.el.style.left=ev.clientX+"px"; d.el.style.top=ev.clientY+"px";
+  var p=byId[d.id], ok=nearHome(ev.clientX,ev.clientY,p);
+  if(ok!==d.ok){ d.ok=ok; if(performance.now()<state.hintUntil) d.el.classList.toggle("hit",ok); }
+});
+document.addEventListener("pointerup",function(ev){
+  var d=state.drag; if(!d) return;
+  state.drag=null; state.dropAt=performance.now(); d.el.remove(); d.card.classList.remove("held");
+  var p=byId[d.id], r=canvas.getBoundingClientRect();
+  var over=(ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom);
+  startClock();
+  var blk=nearHome(ev.clientX,ev.clientY,p)?blockedBy(p):null;
+  if(!blk&&nearHome(ev.clientX,ev.clientY,p)) placePart(d.id);
+  else { if(over){ state.miss++; updateHud(); sfx("ng"); if(blk) tellBlocked(blk);
+      var c2=strip.querySelector('[data-id="'+d.id+'"]'); if(c2){ c2.classList.add("shake"); setTimeout(function(){c2.classList.remove("shake");},420); } }
+    refresh(); }
+});
+
+/* ===== はめる順番のルール =====
+   自分の上（手前）にかぶさるパーツが置かれていると、そこへはめられない。
+   先にそれを外して、はめる場所が見えるようにしてもらう。 */
+function fpBox(p){
+  var g=p.g;
+  if(g.blob) return [g.u-0.035,g.u+0.035,g.t-0.14,g.t+0.14];
+  return [Math.min(g.u0,g.u1),Math.max(g.u0,g.u1),Math.min(g.t0,g.t1),Math.max(g.t0,g.t1)];
+}
+function depthRank(p){
+  if(p.layer<=1) return 6;   /* 皮・あたま（いちばん手前） */
+  if(p.layer===2) return 5;  /* 外の身A・カマ */
+  if(p.layer===3) return 4;  /* あかみA */
+  if(p.layer===4) return 3;  /* なかおち */
+  if(p.layer===5) return 2;  /* あかみB */
+  return 1;                  /* 中の身B・内臓 */
+}
+function blockedBy(p){
+  var a=fpBox(p),r=depthRank(p),hit=null;
+  PARTS.forEach(function(q){
+    if(hit||q===p||q.state!=="home"||depthRank(q)<=r) return;
+    var b=fpBox(q);
+    if(Math.min(a[1],b[1])-Math.max(a[0],b[0])>0.02 &&
+       Math.min(a[3],b[3])-Math.max(a[2],b[2])>0.03) hit=q;
+  });
+  return hit;
+}
+function tellFixed(){
+  var b=$("#nowBar"); b.className="nowbar";
+  b.innerHTML='<span class="tx"><span class="nm" style="color:var(--red-d)">ここは はずせません</span>'+
+    '<span class="ds">あたま・ひれ・ふちは、はずせない部分です。</span></span>';
+}
+function tellBlocked(q){
+  var b=$("#nowBar"); b.className="nowbar";
+  b.innerHTML='<span class="sw"></span><span class="tx">'+
+    '<span class="nm" style="color:var(--red-d)">まだ はめられません</span>'+
+    '<span class="ds">上にのっている「'+KIND[q.kind].n+(q.side||"")+'」を先にタップして外してね。</span></span>';
+}
+function applyLabels(){
+  PARTS.forEach(function(p){
+    p.mesh.material.map=state.hideLabel?p.texPlain:p.texLabel;
+    p.mesh.material.needsUpdate=true;
+  });
+}
+/* ================= 画面 ================= */
+function viewBtns(){ layoutBottom(); }
+function layoutBottom(){        /* 下の列の高さに合わせて、完成の帯を上へ逃がす */
+  var h=($("#cornerBar")&&$("#cornerBar").offsetHeight)||0;
+  var b=(h?h+14:12)+"px";
+  $("#doneBanner").style.bottom=b; $("#doneNav").style.bottom=b;
+}
+function go(name,opt){
+  state.screen=name; app.className="app t-"+name;
+  ["Title","Howto","Parts","Done","Name"].forEach(function(n){
+    $("#ov"+n).classList.toggle("hide",name!==n.toLowerCase());
+  });
+  $("#hdr").classList.toggle("hide",name==="title"||name==="done"||name==="name");
+  $("#playBody").hidden=name!=="play";
+  $("#barWrap").hidden=name!=="play";
+  $("#countPill").hidden=name!=="play";
+  $("#btnPause").hidden=name!=="play";
+  $("#layerPill").hidden=name!=="play";
+  $("#vbHint").hidden=!(name==="play"&&state.mode==="kumitate");
+  $("#vbMiss").hidden=!(name==="play"&&state.mode==="kumitate");
+  $("#vbLeft").hidden=name!=="play";
+  $("#hdrTime").hidden=!(name==="play"&&state.mode==="kumitate");
+  if(name==="howto") $("#hdrTitle").textContent="あそびかた";
+  if(name==="parts"){ $("#hdrTitle").textContent="パーツ一覧"; renderParts(); }
+  if(name==="title"){ stopClock(); wholeFish(); state.spin=true; resetCam();
+    state.cam.tTarget.set(0.3,-2.55,0); state.cam.target.set(0.3,-2.55,0);
+    state.cam.tZoom=0.92; }
+  if(name==="play"&&opt!=="resume") resetMode();
+  canvas.classList.toggle("knife",name==="play"&&state.mode==="kaitai");
+  viewBtns(); keepAwake(name==="play");
+  confetti(name==="done"); swimStart(name==="done");
+  setTimeout(resize,0);
+}
+function wholeFish(){
+  tw.length=0; state.mode="kaitai";
+  PARTS.forEach(function(p){ p.state="home"; p.mesh.position.copy(p.home); p.mesh.scale.set(1,1,1);
+    p.mesh.material.opacity=1; p.mesh.material.transparent=false; });
+  refresh();
+}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function resetMode(){
+  stopClock(); tw.length=0; state.t0=0; state.acc=0; state.started=false; state.miss=0; state.drag=null;
+  state.finished=false; $("#doneBanner").hidden=true;
+  $("#hdrTime").textContent="⏱ 0:00";
+  PARTS.forEach(function(p){ p.mesh.position.copy(p.home); p.mesh.scale.set(1,1,1);
+    p.mesh.material.opacity=1; p.mesh.material.transparent=false; });
+  if(state.mode==="kaitai"){
+    state.removed=[];state.placed=[];state.order=[];
+    PARTS.forEach(function(p){p.state="home";});
+  }else{
+    state.removed=[];state.placed=[];
+    PARTS.forEach(function(p){p.state="off";});
+    var by=[[],[],[],[],[],[],[]]; PARTS.forEach(function(p){by[p.layer].push(p.id);});
+    state.order=shuffle(by[6]).concat(shuffle(by[5]),shuffle(by[4]),shuffle(by[3]),shuffle(by[2]),shuffle(by[1]),shuffle(by[0]));
+  }
+  resetCam(); state.spin=false;
+  refresh(); renderStrip(); showNow(null); updateHud();
+  $("#hdrTitle").textContent=state.mode==="kaitai"?"マグロを解体しよう":"元どおりに組み立てよう";
+  $("#vbHint").hidden=state.mode!=="kumitate";
+  $("#vbMiss").hidden=state.mode!=="kumitate";
+  $("#vbLeft").hidden=false;
+  state.hints=0; state.hintUntil=0;
+}
+function startMode(m){ state.mode=m; go("play"); }
+var MI={sekami:1,senaka:1,seshimo:1,akami:1,harakami:1,haranaka:1,harashimo:1,kama:1,kamatoro:1};
+function renderParts(){
+  var g1=[],g2=[];
+  PARTS.forEach(function(p){
+    var k=KIND[p.kind];
+    var h='<li><button class="pcard'+(k.rare?" rare":"")+'" aria-expanded="false"><img src="'+(THUMB[p.id]||"")+'" alt="">'+
+      '<b>'+k.n+(p.side||'')+'</b><small>'+k.g+'</small>'+(k.rare?'<span class="rb">希少部位</span>':"")+
+      '<span class="ds">'+k.d+'</span></button></li>';
+    (MI[p.kind]?g2:g1).push(h);
+  });
+  $("#partsList").innerHTML='<div class="grp">皮・頭・骨・内臓・尾</div><ul class="plist">'+g1.join("")+'</ul>'+
+    '<div class="grp">中トロ・大トロ・赤身などの身</div><ul class="plist">'+g2.join("")+'</ul>'+
+    '<p style="font-size:11.5px;font-weight:700;color:var(--ink-2);text-align:center">カードをタップすると説明が出ます</p>';
+}
+$("#partsList").addEventListener("click",function(ev){
+  var b=ev.target.closest(".pcard"); if(!b) return;
+  b.setAttribute("aria-expanded",b.getAttribute("aria-expanded")==="true"?"false":"true");
+});
+$("#goKaitai").addEventListener("click",function(){startMode("kaitai");});
+$("#goKumitate").addEventListener("click",function(){startMode("kumitate");});
+$("#goHowto").addEventListener("click",function(){go("howto");});
+$("#goParts").addEventListener("click",function(){go("parts");});
+$("#howtoStart").addEventListener("click",function(){startMode("kaitai");});
+function openSheet(){ pauseClock();
+  $("#pauseTtl").textContent=(state.mode==="kumitate")?"ちょっと休けい（タイマーは止まっています）":"ちょっと休けい";
+  $("#sheet").classList.remove("hide"); }
+$("#btnBack").addEventListener("click",function(){ if(state.screen==="play") openSheet(); else go("title"); });
+$("#btnPause").addEventListener("click",openSheet);
+$("#pvResume").addEventListener("click",function(){$("#sheet").classList.add("hide");resumeClock();});
+$("#pvRestart").addEventListener("click",function(){$("#sheet").classList.add("hide");resetMode();});
+$("#pvTop").addEventListener("click",function(){$("#sheet").classList.add("hide");go("title");});
+$("#sheet").addEventListener("click",function(ev){if(ev.target===this)this.classList.add("hide");});
+$("#doneAgain").addEventListener("click",function(){startMode(state.mode);});
+$("#doneOther").addEventListener("click",function(){startMode(state.mode==="kaitai"?"kumitate":"kaitai");});
+$("#doneTop").addEventListener("click",function(){go("title");});
+$("#doneBanner").addEventListener("click",showDone);
+$("#navTop").addEventListener("click",function(){ state.finished=false; $("#doneNav").hidden=true; go("title"); });
+$("#navAgain").addEventListener("click",function(){ state.finished=false; $("#doneNav").hidden=true; startMode("kaitai"); });
+$("#navNext").addEventListener("click",function(){ state.finished=false; $("#doneNav").hidden=true; startMode("kumitate"); });
+$("#pvLabel").addEventListener("click",function(){
+  state.hideLabel=!state.hideLabel; applyLabels();
+  this.textContent=state.hideLabel?"部位名をだす":"部位名をかくす（上級）";
+});
+function hintTarget(){
+  if(state.drag) return state.drag.id;
+  if(state.mode==="kaitai"){                 /* いま外せる＝ほかのパーツにおおわれていない */
+    var free0=PARTS.filter(function(p){ return p.state==="home"&&!blockedBy(p); });
+    free0.sort(function(a,b){ return a.layer-b.layer; });
+    return free0.length?free0[0].id:null;
+  }
+  var l=layerNow(); if(l<0) return null;
+  var cand=PARTS.filter(function(p){ return p.layer===l&&p.state!=="home"; });
+  var free=cand.filter(function(p){ return !blockedBy(p); });
+  if(free.length) return free[0].id;
+  /* いまの層が全部ふさがっていたら、はめられるパーツをどれか指す */
+  var any=PARTS.filter(function(p){ return p.state!=="home"&&!blockedBy(p); });
+  if(any.length) return any[0].id;
+  return cand.length?cand[0].id:null;
+}
+$("#vbHint").addEventListener("click",function(){
+  var id=hintTarget(); if(!id) return;
+  state.hints++; state.hintId=id; state.hintUntil=performance.now()+3500;
+  var p=byId[id]; showNow(id); refresh();
+  setTimeout(function(){ state.hintId=null; refresh(); },3600);
+});
+/* ---- なまえ ---- */
+function askName(){ $("#nameInput").value=playerName(); go("name"); setTimeout(function(){$("#nameInput").focus();},60); }
+$("#btnName").addEventListener("click",askName);
+$("#nameOk").addEventListener("click",function(){
+  var v=$("#nameInput").value.trim().slice(0,8);
+  setPlayerName(v||"ゲスト"); go("title");
+});
+$("#nameInput").addEventListener("keydown",function(ev){ if(ev.key==="Enter") $("#nameOk").click(); });
+document.addEventListener("keydown",function(ev){if(ev.key==="Escape")$("#sheet").classList.add("hide");});
+/* ================= スマホでアプリらしく ================= */
+(function(){
+  try{
+    var vp=document.querySelector('meta[name="viewport"]');
+    if(vp&&vp.content.indexOf("viewport-fit")<0) vp.content+=",viewport-fit=cover";
+    function meta(n,c){ var m=document.createElement("meta"); m.name=n; m.content=c; document.head.appendChild(m); }
+    meta("apple-mobile-web-app-capable","yes");          /* ホーム画面から全画面で開く */
+    meta("mobile-web-app-capable","yes");
+    meta("apple-mobile-web-app-status-bar-style","default");
+    meta("apple-mobile-web-app-title","マグロパズル");
+    meta("theme-color","#1B74D8");
+  }catch(e){}
+})();
+var wakeLock=null;                                        /* 遊んでいる間は画面を消さない */
+function keepAwake(on){
+  try{
+    if(on){
+      if(!wakeLock&&navigator.wakeLock) navigator.wakeLock.request("screen").then(function(w){
+        wakeLock=w; w.addEventListener("release",function(){ wakeLock=null; });
+      }).catch(function(){});
+    }else if(wakeLock){ wakeLock.release(); wakeLock=null; }
+  }catch(e){}
+}
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="visible"&&state.screen==="play") keepAwake(true);
+});
+/* ================= 起動 ================= */
+function resize(){
+  layoutBottom();
+  var w=canvas.clientWidth||420,h=canvas.clientHeight||300;
+  renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+window.addEventListener("resize",resize);
+if(window.ResizeObserver) new ResizeObserver(resize).observe(stageEl);
+function loop(){requestAnimationFrame(loop);updateCam();stepTw(performance.now());renderer.render(scene,camera);}
+window.__dbg={scene:scene,camera:camera,PARTS:PARTS,state:state,THREE:THREE};
+resize();
+try{ buildThumbs(); }catch(e){ window.__dbg.thumbErr=e.message; }
+$("#loading").hidden=true;
+try{$("#appVer").textContent=APP_VERSION;}catch(e){}
+setPlayerName(playerName());
+if(playerName()) go("title"); else { $("#nameInput").value=""; go("name"); }
+loop();
+})();
+
+</script>

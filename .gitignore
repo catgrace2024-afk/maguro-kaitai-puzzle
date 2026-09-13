@@ -1,0 +1,11 @@
+.DS_Store
+_mt.html
+_mobiletest.html
+
+# 過去の試作版と、参考用にお預かりした画像は公開しない
+img/
+img-puzzle.html
+2d.html
+3d-v1.html
+src/
+*.bak
