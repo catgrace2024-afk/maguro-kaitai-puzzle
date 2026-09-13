@@ -176,15 +176,25 @@ button{font:inherit}
 .stripwrap{position:relative;margin:0 11px;border-radius:14px;padding:7px;
   background:linear-gradient(180deg,#EDE3CE,#DCCDAE);box-shadow:inset 0 2px 6px rgba(120,90,40,.25);border:2px solid #CBB794}
 .strip{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;
-  min-height:96px;max-height:96px;align-items:center;
-  -webkit-overflow-scrolling:touch}
+  min-height:96px;max-height:96px;align-items:center;scroll-behavior:smooth;
+  touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;scrollbar-color:#B9A277 transparent}
+.strip::-webkit-scrollbar{height:7px}
+.strip::-webkit-scrollbar-track{background:rgba(120,90,40,.12);border-radius:99px}
+.strip::-webkit-scrollbar-thumb{background:#B9A277;border-radius:99px}
 .pcard2{flex:0 0 auto;width:86px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 3px;border:none;
-  border-radius:10px;background:#FFFDF7;box-shadow:0 2px 0 rgba(90,60,20,.35);cursor:grab;touch-action:none}
+  border-radius:10px;background:#FFFDF7;box-shadow:0 2px 0 rgba(90,60,20,.35);cursor:grab;touch-action:pan-x}
 .pcard2 img{width:100%;height:54px;object-fit:contain;display:block;pointer-events:none}
 .pcard2 b{font-size:12.5px;font-weight:800;color:var(--navy);line-height:1.2;pointer-events:none}
 .pcard2.rare{box-shadow:0 2px 0 rgba(90,60,20,.35),inset 0 0 0 2px rgba(201,146,43,.85)}
 .pcard2.held{opacity:.35}
 .pcard2.in{animation:pop .32s cubic-bezier(.2,1.4,.4,1)}
+.stripbtn{position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:30px;height:54px;
+  border:none;border-radius:10px;background:rgba(255,253,247,.94);color:var(--navy);
+  font-size:22px;font-weight:800;line-height:1;cursor:pointer;padding:0;
+  box-shadow:0 2px 6px rgba(90,60,20,.35)}
+.stripbtn.l{left:2px}
+.stripbtn.r{right:2px}
 .stripempty{position:absolute;inset:0;display:grid;place-items:center;margin:0;font-size:12px;font-weight:700;color:rgba(80,55,20,.6);pointer-events:none}
 .floatpiece{position:fixed;z-index:50;width:104px;height:80px;object-fit:contain;pointer-events:none;
   transform:translate(-50%,-55%);filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
@@ -301,6 +311,8 @@ button{font:inherit}
     <div class="nowbar idle" id="nowBar"><span class="sw"></span><span class="tx"><span class="nm">パーツをタップしてね</span><span class="ds">ドラッグで回転、ホイールで拡大。</span></span></div>
     <div class="striphd">🍣 パーツ置き場<span id="stripCount">0 個</span></div>
     <div class="stripwrap">
+      <button class="stripbtn l" id="stripL" hidden aria-label="左へ">‹</button>
+      <button class="stripbtn r" id="stripR" hidden aria-label="右へ">›</button>
       <div class="strip" id="strip"></div>
       <p class="stripempty" id="stripEmpty">はずしたパーツがここに並びます</p>
     </div>

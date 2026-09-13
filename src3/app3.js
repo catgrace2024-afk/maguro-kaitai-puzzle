@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="1.0.1";
+var APP_VERSION="1.0.2";
 var $=function(s){return document.querySelector(s);};
 var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
 if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
@@ -378,7 +378,18 @@ function renderStrip(){
   });
   $("#stripEmpty").hidden=list.length>0;
   $("#stripCount").textContent=list.length+" 個";
+  stripArrows();
 }
+function stripArrows(){                    /* あふれているときだけ、左右の矢印を出す */
+  var over=strip.scrollWidth-strip.clientWidth;
+  var x=strip.scrollLeft;
+  $("#stripL").hidden=!(over>8 && x>4);
+  $("#stripR").hidden=!(over>8 && x<over-4);
+}
+strip.addEventListener("scroll",stripArrows);
+window.addEventListener("resize",stripArrows);
+$("#stripL").addEventListener("click",function(){ strip.scrollLeft-=186; });
+$("#stripR").addEventListener("click",function(){ strip.scrollLeft+=186; });
 /* ================= 記録 ================= */
 /* ===== プレイヤーのなまえ ===== */
 function esc(t){ return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
