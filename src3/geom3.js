@@ -301,7 +301,7 @@ function TL(o){ o.slab=1; o.s1=SO; o.u0=0.900; o.u1=1.000; o.t0=0.045; o.t1=0.95
                 o.wu0=1; o.wu1=0; o.wt0=0; o.wt1=0; return o; }
 add("tail",2,TL({zn:"S",zf:ZA}),null,"A");
 /* --- なかおち（背骨つきのうすい板）とカマとろ（カマの内がわ） --- */
-add("nakaochi",4,{slab:1,s1:SO,zn:ZP1,zf:ZP0,u0:0.322,u1:0.930,t0:0.045,t1:0.940,wu0:0,wu1:0,wt0:0,wt1:1});
+add("nakaochi",4,{slab:1,s1:SO,zn:ZP1,zf:ZP0,u0:0.322,u1:0.900,t0:0.045,t1:0.940,wu0:0,wu1:0,wt0:0,wt1:1});
 add("kamatoro",2,{slab:1,s1:SO,zn:"S",zf:"F",lwu:0.82,u0:0.210,u1:0.290,t0:0.045,t1:0.950,
                   ulo:kbk,wu0:0,wu1:0,wt0:0,wt1:0});
 /* --- 中の身（B）：Aとおなじ形。奥ゆきいっぱいの厚いブロック --- */

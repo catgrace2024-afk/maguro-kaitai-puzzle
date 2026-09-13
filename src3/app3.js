@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="1.0.2";
+var APP_VERSION="1.0.3";
 var $=function(s){return document.querySelector(s);};
 var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
 if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
@@ -793,8 +793,14 @@ function blockedBy(p){
   PARTS.forEach(function(q){
     if(hit||q===p||q.state!=="home"||depthRank(q)<=r) return;
     var b=fpBox(q);
-    if(Math.min(a[1],b[1])-Math.max(a[0],b[0])>0.02 &&
-       Math.min(a[3],b[3])-Math.max(a[2],b[2])>0.03) hit=q;
+    var ou=Math.min(a[1],b[1])-Math.max(a[0],b[0]);      /* 前後の重なり */
+    var ot=Math.min(a[3],b[3])-Math.max(a[2],b[2]);      /* 上下の重なり */
+    if(ou<=0||ot<=0) return;
+    /* ふちがかすっているだけなら「上にのっている」とはみなさない */
+    var su=Math.min(a[1]-a[0], b[1]-b[0]), st=Math.min(a[3]-a[2], b[3]-b[2]);
+    if(ou < Math.max(0.035, su*0.25)) return;
+    if(ot < Math.max(0.06,  st*0.25)) return;
+    hit=q;
   });
   return hit;
 }
