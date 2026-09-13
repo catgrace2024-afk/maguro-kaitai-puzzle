@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="1.0.3";
+var APP_VERSION="1.0.4";
 var $=function(s){return document.querySelector(s);};
 var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
 if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
@@ -388,8 +388,9 @@ function stripArrows(){                    /* あふれているときだけ、�
 }
 strip.addEventListener("scroll",stripArrows);
 window.addEventListener("resize",stripArrows);
-$("#stripL").addEventListener("click",function(){ strip.scrollLeft-=186; });
-$("#stripR").addEventListener("click",function(){ strip.scrollLeft+=186; });
+function stripScroll(v){ try{ strip.scrollBy({left:v,behavior:"smooth"}); }catch(e){ strip.scrollLeft+=v; } }
+$("#stripL").addEventListener("click",function(){ stripScroll(-186); });
+$("#stripR").addEventListener("click",function(){ stripScroll(186); });
 /* ================= 記録 ================= */
 /* ===== プレイヤーのなまえ ===== */
 function esc(t){ return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
@@ -725,25 +726,42 @@ function endDrag(){                     /* つまんでいる状態を必ず後�
   refresh();
 }
 /* 指が離れずに中断された・アプリが裏に回った等でも、必ず戻す */
-document.addEventListener("pointercancel",endDrag);
-strip.addEventListener("lostpointercapture",endDrag);
-window.addEventListener("blur",endDrag);
-document.addEventListener("visibilitychange",function(){ if(document.hidden) endDrag(); });
+window.addEventListener("blur",function(){ sdrag=null; endDrag(); });
+document.addEventListener("visibilitychange",function(){ if(document.hidden){ sdrag=null; endDrag(); } });
+document.addEventListener("pointercancel",function(){ sdrag=null; endDrag(); });
+
+/* ===== パーツ置き場の指づかい =====
+   指の動く向きを自分で見て、横なら置き場をスクロール、縦ならパーツをつまむ。
+   ブラウザに判断させると、途中で操作を横取りされてパーツが指から離れてしまう。 */
+var sdrag=null;
+function beginDrag(id,card,x,y){
+  var f=document.createElement("img");
+  f.className="floatpiece"; f.src=THUMB[id]||"";
+  f.style.left=x+"px"; f.style.top=y+"px";
+  document.body.appendChild(f);
+  state.drag={id:id,el:f,card:card,ok:false};
+  card.classList.add("held");
+  refresh();
+}
 strip.addEventListener("pointerdown",function(ev){
-  endDrag();                            /* 前のつまみが残っていたら先に片づける */
+  sdrag=null; endDrag();                /* 前のつまみが残っていたら先に片づける */
   var card=ev.target.closest(".pcard2"); if(!card) return;
   var id=card.getAttribute("data-id");
   showNow(id);
   if(state.mode!=="kumitate") return;
   ev.preventDefault();
-  var f=document.createElement("img");
-  f.className="floatpiece"; f.src=THUMB[id]||"";
-  document.body.appendChild(f);
-  state.drag={id:id,el:f,card:card,ok:false};
-  card.classList.add("held");
-  f.style.left=ev.clientX+"px"; f.style.top=ev.clientY+"px";
-  try{card.setPointerCapture(ev.pointerId);}catch(e){}
-  refresh();
+  sdrag={id:id,card:card,x0:ev.clientX,y0:ev.clientY,sl:strip.scrollLeft,mode:0,pid:ev.pointerId};
+  try{ strip.setPointerCapture(ev.pointerId); }catch(e){}   /* 置き場ごと押さえる（カードは入れ替わるので） */
+});
+strip.addEventListener("pointermove",function(ev){
+  if(!sdrag||ev.pointerId!==sdrag.pid) return;
+  var dx=ev.clientX-sdrag.x0, dy=ev.clientY-sdrag.y0;
+  if(sdrag.mode===0){
+    if(Math.abs(dx)<7&&Math.abs(dy)<7) return;             /* まだどちらか決まらない */
+    if(Math.abs(dx)>Math.abs(dy)){ sdrag.mode=1; }         /* 横 → スクロール */
+    else { sdrag.mode=2; beginDrag(sdrag.id,sdrag.card,ev.clientX,ev.clientY); }  /* 縦 → つまむ */
+  }
+  if(sdrag.mode===1){ strip.scrollLeft=sdrag.sl-dx; stripArrows(); }
 });
 function nearHome(cx,cy,p){
   var r=canvas.getBoundingClientRect();
@@ -758,6 +776,7 @@ document.addEventListener("pointermove",function(ev){
   if(ok!==d.ok){ d.ok=ok; if(performance.now()<state.hintUntil) d.el.classList.toggle("hit",ok); }
 });
 document.addEventListener("pointerup",function(ev){
+  if(sdrag&&ev.pointerId===sdrag.pid) sdrag=null;
   var d=state.drag; if(!d) return;
   state.drag=null; state.dropAt=performance.now();
   if(d.el&&d.el.parentNode) d.el.parentNode.removeChild(d.el);

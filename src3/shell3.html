@@ -176,14 +176,14 @@ button{font:inherit}
 .stripwrap{position:relative;margin:0 11px;border-radius:14px;padding:7px;
   background:linear-gradient(180deg,#EDE3CE,#DCCDAE);box-shadow:inset 0 2px 6px rgba(120,90,40,.25);border:2px solid #CBB794}
 .strip{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;
-  min-height:96px;max-height:96px;align-items:center;scroll-behavior:smooth;
-  touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  min-height:96px;max-height:96px;align-items:center;
+  touch-action:none;overscroll-behavior:contain;
   scrollbar-width:thin;scrollbar-color:#B9A277 transparent}
 .strip::-webkit-scrollbar{height:7px}
 .strip::-webkit-scrollbar-track{background:rgba(120,90,40,.12);border-radius:99px}
 .strip::-webkit-scrollbar-thumb{background:#B9A277;border-radius:99px}
 .pcard2{flex:0 0 auto;width:86px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 3px;border:none;
-  border-radius:10px;background:#FFFDF7;box-shadow:0 2px 0 rgba(90,60,20,.35);cursor:grab;touch-action:pan-x}
+  border-radius:10px;background:#FFFDF7;box-shadow:0 2px 0 rgba(90,60,20,.35);cursor:grab;touch-action:none}
 .pcard2 img{width:100%;height:54px;object-fit:contain;display:block;pointer-events:none}
 .pcard2 b{font-size:12.5px;font-weight:800;color:var(--navy);line-height:1.2;pointer-events:none}
 .pcard2.rare{box-shadow:0 2px 0 rgba(90,60,20,.35),inset 0 0 0 2px rgba(201,146,43,.85)}
