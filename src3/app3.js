@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="1.0.0";
+var APP_VERSION="1.0.1";
 var $=function(s){return document.querySelector(s);};
 var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
 if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
@@ -600,7 +600,19 @@ function worldAt(cx,cy){
 }
 function pivotAt(cx,cy){
   var w=worldAt(cx,cy);
-  if(w) state.cam.tTarget.copy(w);
+  if(!w){                                     /* 何も無い所なら、いまの中心と同じ奥ゆきの面で取る */
+    ray.setFromCamera(ndcOf(cx,cy),camera);
+    var n=camera.getWorldDirection(new THREE.Vector3());
+    var pl=new THREE.Plane().setFromNormalAndCoplanarPoint(n,state.cam.target);
+    w=new THREE.Vector3(); if(!ray.ray.intersectPlane(pl,w)) return false;
+  }
+  state.cam.tTarget.copy(w); return true;
+}
+function pivotMark(cx,cy){                    /* 中心にした所に、印をひとつ出す */
+  var m=document.createElement("span"); m.className="pivotmark";
+  m.style.left=cx+"px"; m.style.top=cy+"px";
+  document.body.appendChild(m);
+  setTimeout(function(){ if(m.parentNode) m.parentNode.removeChild(m); },700);
 }
 function fitDist(){
   var vf=camera.fov*Math.PI/180,hh=Math.atan(Math.tan(vf/2)*camera.aspect);
@@ -647,6 +659,24 @@ canvas.addEventListener("pointermove",function(ev){
     }
   }
 });
+var TAPWAIT=230, TAPNEAR=22;     /* この時間内に、この距離内で2回目が来たら「ダブルタップ」 */
+var tapTimer=null, tapPend=null, lastTap=0, lastTX=0, lastTY=0;
+function tapClear(){ if(tapTimer){ clearTimeout(tapTimer); tapTimer=null; } tapPend=null; }
+function tapFlush(){                     /* 待っている分があれば、すぐ実行する */
+  if(tapTimer){ clearTimeout(tapTimer); tapTimer=null; }
+  var f=tapPend; tapPend=null; if(f) f();
+}
+function tapAction(cx,cy){
+  ray.setFromCamera(ndcOf(cx,cy),camera);
+  var list=[]; PARTS.forEach(function(p){ if(p.state==="home") list.push(p.mesh); });
+  var h=ray.intersectObjects(list,false);
+  if(h.length){ if(state.mode==="kaitai") removePart(h[0].object.userData.id);
+                else unplacePart(h[0].object.userData.id); }
+  else if(state.mode==="kaitai"){
+    var hf=ray.intersectObject(frameGroup,true);
+    if(hf.length){ sfx("ng"); tellFixed(); }
+  }
+}
 function upCanvas(ev){
   ptrs.delete(ev.pointerId); if(ptrs.size<2) pinch0=0;
   var wasDrag=moved>4; dragging=false; canvas.classList.remove("grabbing");
@@ -654,15 +684,18 @@ function upCanvas(ev){
   if(state.drag||performance.now()-(state.dropAt||0)<420) return;
   if(!wasDrag&&state.screen==="play"){
     if(state.finished){ if(state.mode!=="kaitai") showDone(); return; }     /* 完成後はどこをタップしても結果へ */
-    ray.setFromCamera(ndcOf(ev.clientX,ev.clientY),camera);
-    var list=[]; PARTS.forEach(function(p){ if(p.state==="home") list.push(p.mesh); });
-    var h=ray.intersectObjects(list,false);
-    if(h.length){ if(state.mode==="kaitai") removePart(h[0].object.userData.id);
-                  else unplacePart(h[0].object.userData.id); }
-    else if(state.mode==="kaitai"){
-      var hf=ray.intersectObject(frameGroup,true);
-      if(hf.length){ sfx("ng"); tellFixed(); }
+    var now=performance.now(), cx=ev.clientX, cy=ev.clientY;
+    if(now-lastTap<TAPWAIT && Math.abs(cx-lastTX)<TAPNEAR && Math.abs(cy-lastTY)<TAPNEAR){
+      tapClear();                        /* 同じ所の2回目 ＝ 1回目の動作は取り消す */
+      lastTap=0;
+      if(state.spin) state.spin=false;
+      if(pivotAt(cx,cy)) pivotMark(cx,cy);
+      return;
     }
+    tapFlush();                          /* 別の所を続けて押したときは、前の分を先に実行 */
+    lastTap=now; lastTX=cx; lastTY=cy;
+    tapPend=function(){ tapAction(cx,cy); };
+    tapTimer=setTimeout(function(){ tapTimer=null; var f=tapPend; tapPend=null; if(f) f(); }, TAPWAIT);
   }
 }
 canvas.addEventListener("pointerup",upCanvas);
@@ -673,7 +706,20 @@ canvas.addEventListener("wheel",function(ev){
   state.cam.tZoom=Math.max(0.28,Math.min(2.2,state.cam.tZoom*(1+ev.deltaY*0.0013)));
 },{passive:false});
 /* ---- 下のパーツ置き場からドラッグ ---- */
+function endDrag(){                     /* つまんでいる状態を必ず後始末する */
+  var d=state.drag; if(!d) return;
+  state.drag=null; state.dropAt=performance.now();
+  if(d.el&&d.el.parentNode) d.el.parentNode.removeChild(d.el);
+  if(d.card) d.card.classList.remove("held");
+  refresh();
+}
+/* 指が離れずに中断された・アプリが裏に回った等でも、必ず戻す */
+document.addEventListener("pointercancel",endDrag);
+strip.addEventListener("lostpointercapture",endDrag);
+window.addEventListener("blur",endDrag);
+document.addEventListener("visibilitychange",function(){ if(document.hidden) endDrag(); });
 strip.addEventListener("pointerdown",function(ev){
+  endDrag();                            /* 前のつまみが残っていたら先に片づける */
   var card=ev.target.closest(".pcard2"); if(!card) return;
   var id=card.getAttribute("data-id");
   showNow(id);
@@ -702,7 +748,9 @@ document.addEventListener("pointermove",function(ev){
 });
 document.addEventListener("pointerup",function(ev){
   var d=state.drag; if(!d) return;
-  state.drag=null; state.dropAt=performance.now(); d.el.remove(); d.card.classList.remove("held");
+  state.drag=null; state.dropAt=performance.now();
+  if(d.el&&d.el.parentNode) d.el.parentNode.removeChild(d.el);
+  d.card.classList.remove("held");
   var p=byId[d.id], r=canvas.getBoundingClientRect();
   var over=(ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom);
   startClock();
@@ -785,7 +833,7 @@ function go(name,opt){
     state.cam.tZoom=0.92; }
   if(name==="play"&&opt!=="resume") resetMode();
   canvas.classList.toggle("knife",name==="play"&&state.mode==="kaitai");
-  viewBtns(); keepAwake(name==="play");
+  tapClear(); viewBtns(); keepAwake(name==="play");
   confetti(name==="done"); swimStart(name==="done");
   setTimeout(resize,0);
 }
