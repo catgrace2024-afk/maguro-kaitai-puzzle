@@ -775,7 +775,7 @@ var FRAME=[
 
 (function(){
 "use strict";
-var APP_VERSION="1.0.7";
+var APP_VERSION="1.0.8";
 var $=function(s){return document.querySelector(s);};
 var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
 if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
@@ -810,16 +810,25 @@ function grainOn(x,w,h,dark){
 }
 /* 部位名を彫り込んだテクスチャ */
 function partTex(kind,wu,wt,noLabel,lsh){
-  var k=KIND[kind], W=512,H=256;
+  var k=KIND[kind], DW=512, DH=256;        /* 絵をかくときの、決まった目もり */
+  /* 実際の画素数は、部位の縦横の比に合わせて配りなおす。
+     「カマ」のように細長い部位だと、縦がスカスカになって文字が滝のように滲むため。
+     画素の総数は今までどおり（512×256＝2の17乗）で、2のべき乗のまま分け直す。 */
+  var ww0=Math.max(0.25,wu||1), hh0=Math.max(0.25,wt||1);
+  var e=Math.round(Math.log(ww0/hh0)/Math.LN2);
+  if(e%2===0) e+=(ww0>=hh0?1:-1);           /* 足して17になるよう、奇数にそろえる */
+  e=Math.max(-7,Math.min(7,e));
+  var W=Math.pow(2,(17+e)/2), H=Math.pow(2,(17-e)/2);
   var c=cv(W,H,function(x){
+    x.setTransform(W/DW,0,0,H/DH,0,0);      /* 以下は 512×256 の感覚で描ける */
     var base=(k.tone==="skin")?"#ffffff":hx(TONE[k.tone]||0xdddddd);
-    x.fillStyle=base; x.fillRect(0,0,W,H);
-    if(k.tone!=="skin"&&k.tone!=="silver"&&k.tone!=="eyeball"&&k.tone!=="dark") grainOn(x,W,H);
+    x.fillStyle=base; x.fillRect(0,0,DW,DH);
+    if(k.tone!=="skin"&&k.tone!=="silver"&&k.tone!=="eyeball"&&k.tone!=="dark") grainOn(x,DW,DH);
     if(kind==="medama"){
-      x.beginPath(); x.arc(W*0.5,H*0.52,66,0,6.3); x.fillStyle="#f7f7f5"; x.fill();
+      x.beginPath(); x.arc(DW*0.5,DH*0.52,66,0,6.3); x.fillStyle="#f7f7f5"; x.fill();
       x.lineWidth=7; x.strokeStyle="rgba(60,60,60,.55)"; x.stroke();
-      x.beginPath(); x.arc(W*0.5,H*0.52,38,0,6.3); x.fillStyle="#20262b"; x.fill();
-      x.beginPath(); x.arc(W*0.5+13,H*0.52-13,12,0,6.3); x.fillStyle="#fff"; x.fill();
+      x.beginPath(); x.arc(DW*0.5,DH*0.52,38,0,6.3); x.fillStyle="#20262b"; x.fill();
+      x.beginPath(); x.arc(DW*0.5+13,DH*0.52-13,12,0,6.3); x.fillStyle="#fff"; x.fill();
       return;
     }
     if(k.ribs){
@@ -827,14 +836,14 @@ function partTex(kind,wu,wt,noLabel,lsh){
       for(var rb=0;rb<11;rb++){
         var bx=26+rb*44;
         x.lineWidth=13; x.beginPath();
-        x.moveTo(bx,H*0.46); x.bezierCurveTo(bx+16,H*0.66,bx+12,H*0.86,bx-10,H*0.99); x.stroke();
+        x.moveTo(bx,DH*0.46); x.bezierCurveTo(bx+16,DH*0.66,bx+12,DH*0.86,bx-10,DH*0.99); x.stroke();
         x.lineWidth=11; x.beginPath();
-        x.moveTo(bx,H*0.44); x.bezierCurveTo(bx+14,H*0.28,bx+10,H*0.14,bx-8,H*0.03); x.stroke();
+        x.moveTo(bx,DH*0.44); x.bezierCurveTo(bx+14,DH*0.28,bx+10,DH*0.14,bx-8,DH*0.03); x.stroke();
       }
       for(var sg=0;sg<13;sg++){
         var sx=20+sg*38;
         x.fillStyle="#FFFDF6"; x.beginPath();
-        x.ellipse(sx,H*0.45,17,13,0,0,6.3); x.fill();
+        x.ellipse(sx,DH*0.45,17,13,0,0,6.3); x.fill();
         x.strokeStyle="rgba(180,172,155,.55)"; x.lineWidth=2; x.stroke();
       }
     }
@@ -863,7 +872,9 @@ function partTex(kind,wu,wt,noLabel,lsh){
     } else two(t,0,yo);
     x.restore();
   });
-  var tx=new THREE.CanvasTexture(c); tx.anisotropy=4; return tx;
+  var tx=new THREE.CanvasTexture(c);
+  tx.anisotropy=Math.min(16,renderer.capabilities.getMaxAnisotropy()||4);   /* 斜め見のボケ対策 */
+  return tx;
 }
 function mkMat(kind,ghost,wu,wt,lsh){
   var k=KIND[kind];
