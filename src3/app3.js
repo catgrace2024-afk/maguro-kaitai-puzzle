@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="1.0.8";
+var APP_VERSION="1.0.9";
 var $=function(s){return document.querySelector(s);};
 var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
 if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
@@ -433,7 +433,7 @@ function renderRec(){
    Googleスプレッドシート（Apps Script のウェブアプリ）に、じぶんのタイムを1件おくり、
    速い順のベスト10を受け取って表示する。
    RANK_URL が空のあいだ、この欄は出ない。つながらなくても、遊びには影響しない。 */
-var RANK_URL="";
+var RANK_URL="https://script.google.com/macros/s/AKfycbwM9QEoNpgrTMAdAZXkp1SWBLKYIjKDikHt8ZLK_IsMGEli8xP4uoE0ihirbE7-XDZPqQ/exec";
 function rankAsk(params,cb){
   if(!RANK_URL){ cb(null); return; }
   var q=[],k;
