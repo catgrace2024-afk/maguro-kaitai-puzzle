@@ -152,6 +152,7 @@ button{font:inherit}
 .rec h4{margin:0 0 4px;font-size:11.5px;font-weight:800;color:var(--sea-d);letter-spacing:.08em}
 .rec ol{margin:0;padding-left:19px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--navy)}
 .rec .none{margin:0;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.rec .mine{color:var(--sea-d)}
 .sheet{position:absolute;inset:0;z-index:12;display:grid;place-items:center;padding:20px;background:rgba(18,40,62,.55)}
 .sheet.hide{display:none}
 .sheet-in{background:var(--paper);border-radius:20px;padding:17px;width:100%;max-width:330px}
@@ -371,7 +372,7 @@ button{font:inherit}
   <div class="ov solid hide" id="ovName">
     <h3>なまえを おしえてね</h3>
     <div class="card">
-      <p class="nhelp">きろくに なまえが のこります。あとから かえられます。</p>
+      <p class="nhelp">きろくと <b>みんなのベスト</b> に なまえが出ます。<br>ほんみょうは さけて、ニックネームがおすすめです。</p>
       <input id="nameInput" class="tinput" type="text" maxlength="8" placeholder="れい：たろう" autocomplete="off">
     </div>
     <div class="grow"></div>
@@ -389,6 +390,7 @@ button{font:inherit}
       <p class="done-time" id="doneTime">0:00</p>
       <p class="done-meta" id="doneMeta"></p>
       <p class="bestbadge" id="doneBest" hidden>🏆 じこベスト更新！</p>
+      <div class="rec" id="doneAll" hidden></div>
       <div class="rec" id="doneRec"></div>
       <div class="btns">
         <button class="big" id="doneAgain">もう一度あそぶ</button>

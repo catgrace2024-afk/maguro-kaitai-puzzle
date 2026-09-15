@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="1.0.6";
+var APP_VERSION="1.0.7";
 var $=function(s){return document.querySelector(s);};
 var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
 if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
@@ -405,7 +405,7 @@ function saveRec(m,sec,miss){try{var r=loadRecs();r[m]=r[m]||[];var d=new Date()
   state.recId=id; return r[m].length>0&&r[m][0].id===id;}catch(e){return false;}}
 function renderRec(){
   var r=loadRecs(),l=r[state.mode]||[];
-  var h='<h4>'+(state.mode==="kaitai"?"かいたいタイム ベスト":"組み立てタイム ベスト")+'</h4>';
+  var h='<h4>'+(state.mode==="kaitai"?"じぶんのベスト（かいたい）":"じぶんのベスト（組み立て）")+'</h4>';
   if(!l.length) h+='<p class="none">まだ記録がありません。</p>';
   else{h+='<ol class="reclist">';
     l.slice(0,5).forEach(function(e){
@@ -416,6 +416,71 @@ function renderRec(){
     });
     h+='</ol>';}
   $("#doneRec").innerHTML=h;
+}
+
+/* ===== みんなのベストタイム =====
+   Googleスプレッドシート（Apps Script のウェブアプリ）に、じぶんのタイムを1件おくり、
+   速い順のベスト10を受け取って表示する。
+   RANK_URL が空のあいだ、この欄は出ない。つながらなくても、遊びには影響しない。 */
+var RANK_URL="";
+function rankAsk(params,cb){
+  if(!RANK_URL){ cb(null); return; }
+  var q=[],k;
+  for(k in params) if(params.hasOwnProperty(k)) q.push(encodeURIComponent(k)+"="+encodeURIComponent(params[k]));
+  q.push("_="+Date.now());                      /* 古い返事を使い回さないための印 */
+  var done=false, tm=setTimeout(function(){ if(!done){ done=true; cb(null); } },9000);
+  function fin(v){ if(done) return; done=true; clearTimeout(tm); cb(v); }
+  try{
+    fetch(RANK_URL+"?"+q.join("&"),{cache:"no-store"})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ fin(j&&j.ok&&j.list?j.list:null); })
+      .catch(function(){ fin(null); });
+  }catch(e){ fin(null); }
+}
+function renderAll(list,waiting){
+  var el=$("#doneAll"); if(!el) return;
+  if(!RANK_URL){ el.hidden=true; return; }
+  el.hidden=false;
+  var h='<h4>みんなのベスト（組み立て）</h4>';
+  if(waiting) h+='<p class="none">よみこみ中…</p>';
+  else if(list===null) h+='<p class="none">いまは つながりませんでした。電波のあるところで もう一度ひらくと出ます。</p>';
+  else if(!list.length) h+='<p class="none">まだ だれも記録していません。</p>';
+  else{
+    var me=state.myRank||{};
+    h+='<ol class="reclist">';
+    list.slice(0,5).forEach(function(e){
+      var now=(e.who===me.who&&Math.abs(e.sec-(me.sec||-9))<0.06);
+      h+='<li'+(now?' class="now"':'')+'>'+
+         '<span class="who">'+esc(e.who||"ゲスト")+'</span>'+
+         '<span class="tm">'+fmt(e.sec)+'</span>'+
+         '<span class="ms">'+(e.miss?'ミス'+e.miss:'ミス0')+'</span></li>';
+    });
+    h+='</ol>';
+  }
+  el.innerHTML=h;
+}
+/* 電波がなくて送れなかった記録は、この端末にためておき、次にひらいたとき送る */
+function pendLoad(){ try{ return JSON.parse(localStorage.getItem("maguro3d3-pend"))||[]; }catch(e){ return []; } }
+function pendSave(a){ try{ localStorage.setItem("maguro3d3-pend",JSON.stringify(a.slice(-20))); }catch(e){} }
+function rankFlush(cb){
+  var q=pendLoad();
+  if(!q.length){ rankAsk({game:"kumitate"},cb); return; }   /* 送るものがなければ、見るだけ */
+  (function nx(list){
+    if(!q.length){ pendSave(q); cb(list); return; }
+    var it=q[0];
+    rankAsk({mode:"add",game:"kumitate",name:it.who,sec:it.sec,miss:it.miss},function(l){
+      if(l===null){ pendSave(q); cb(list); return; }        /* つながらない：とっておく */
+      q.shift(); pendSave(q); nx(l);
+    });
+  })(null);
+}
+function sendRank(sec){
+  if(!RANK_URL) return;
+  var who=playerName()||"ゲスト";
+  state.myRank={who:who,sec:Math.round(sec*10)/10};
+  var q=pendLoad(); q.push({who:who,sec:sec.toFixed(1),miss:state.miss}); pendSave(q);
+  renderAll(null,true);                          /* 先に「よみこみ中…」を出す */
+  rankFlush(function(list){ renderAll(list,false); });
 }
 /* ================= 進行 ================= */
 function elapsed(){ return (state.acc+(state.t0?performance.now()-state.t0:0))/1000; }
@@ -585,7 +650,7 @@ function finish(){
     ?TOTAL+"パーツ ぜんぶはずせました！"
     :"ミス "+state.miss+"かい／ヒント "+state.hints+"かい。");
   $("#doneOther").textContent=state.mode==="kaitai"?"組み立てに挑戦":"もう一度 解体する";
-  renderRec(); sfx("done");
+  renderRec(); sendRank(sec); sfx("done");
   state.finished=true;
   $("#vbHint").hidden=true; $("#vbMiss").hidden=true;
   $("#doneBanner").innerHTML="✨ 完成！　回してながめられます<br>タップで結果へ";
