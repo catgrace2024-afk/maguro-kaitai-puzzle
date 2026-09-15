@@ -204,6 +204,10 @@ button{font:inherit}
 .floatpiece{position:fixed;z-index:50;width:104px;height:80px;object-fit:contain;pointer-events:none;
   transform:translate(-50%,-55%);filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
 
+.vb.wholeb{background:#DCEEFF;color:var(--sea-d);box-shadow:0 2px 0 rgba(46,138,236,.42)}
+.vb.wholeb:active{transform:translateY(2px);box-shadow:none}
+.vb.wholeb.ping{animation:wping .42s ease-out}
+@keyframes wping{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
 .vb.hint{background:#FFE9A8;color:#7A5200;box-shadow:0 2px 0 #C79A2A}
 .vb.missb{background:rgba(255,255,255,.92);color:var(--red-d);cursor:default;
   font-variant-numeric:tabular-nums;box-shadow:0 2px 0 rgba(120,90,40,.22)}
@@ -211,6 +215,13 @@ button{font:inherit}
 .vb.leftb{background:rgba(255,255,255,.92);color:var(--sea-d);cursor:default;
   font-variant-numeric:tabular-nums;box-shadow:0 2px 0 rgba(120,90,40,.22)}
 .vb.leftb b{font-size:14px;font-weight:800}
+/* せまい画面では、下の4つのボタンが1行におさまるように少し小さくする */
+@media (max-width:365px){
+  .cornerbar{gap:5px}
+  .vb{padding:6px 8px;font-size:10.5px}
+  .vb.missb b{font-size:12.5px}
+  .vb.leftb b{font-size:13px}
+}
 .cornerbar{position:absolute;left:8px;right:8px;bottom:8px;z-index:6;display:flex;gap:6px;
   align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .donenav{position:absolute;left:0;right:0;bottom:9px;z-index:7;display:flex;gap:7px;
@@ -300,6 +311,7 @@ button{font:inherit}
       <canvas id="gl"></canvas>
       <span class="layerpill" id="layerPill" hidden></span>
       <div class="cornerbar" id="cornerBar">
+        <button class="vb wholeb" id="vbWhole" hidden>🐟 ぜんたい</button>
         <button class="vb hint" id="vbHint" hidden>💡 ヒント</button>
         <span class="vb missb" id="vbMiss" hidden>ミス <b id="vbMissN">0</b></span>
         <span class="vb leftb" id="vbLeft" hidden>のこり <b id="vbLeftN">27</b></span>

@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var APP_VERSION="1.0.5";
+var APP_VERSION="1.0.6";
 var $=function(s){return document.querySelector(s);};
 var canvas=$("#gl"), stageEl=canvas.parentNode, app=$(".app"), strip=$("#strip");
 if(!window.THREE){ $("#loading").textContent="3Dの読み込みに失敗しました"; return; }
@@ -885,6 +885,7 @@ function go(name,opt){
   $("#countPill").hidden=name!=="play";
   $("#btnPause").hidden=name!=="play";
   $("#layerPill").hidden=name!=="play";
+  $("#vbWhole").hidden=!(name==="play"&&state.mode==="kumitate");
   $("#vbHint").hidden=!(name==="play"&&state.mode==="kumitate");
   $("#vbMiss").hidden=!(name==="play"&&state.mode==="kumitate");
   $("#vbLeft").hidden=name!=="play";
@@ -924,6 +925,7 @@ function resetMode(){
   resetCam(); state.spin=false;
   refresh(); renderStrip(); showNow(null); updateHud();
   $("#hdrTitle").textContent=state.mode==="kaitai"?"マグロを解体しよう":"元どおりに組み立てよう";
+  $("#vbWhole").hidden=state.mode!=="kumitate";
   $("#vbHint").hidden=state.mode!=="kumitate";
   $("#vbMiss").hidden=state.mode!=="kumitate";
   $("#vbLeft").hidden=false;
@@ -989,6 +991,10 @@ function hintTarget(){
   if(any.length) return any[0].id;
   return cand.length?cand[0].id:null;
 }
+$("#vbWhole").addEventListener("click",function(){
+  state.spin=false; resetCam();            /* 向き・寄り・中心を さいしょにもどす */
+  var b=this; b.classList.add("ping"); setTimeout(function(){ b.classList.remove("ping"); },420);
+});
 $("#vbHint").addEventListener("click",function(){
   var id=hintTarget(); if(!id) return;
   state.hints++; state.hintId=id; state.hintUntil=performance.now()+3500;
